@@ -42,35 +42,35 @@ class HowToPlayDialog extends StatelessWidget {
             ),
             const Divider(color: Color(0xFF3C096C), height: 24),
             _buildRuleItem(
-              icon: Icons.grid_view_rounded,
-              color: const Color(0xFFE0AAFF),
-              title: 'Every Letter Counts!',
+              icon: Icons.gesture,
+              color: const Color(0xFF00F5D4),
+              title: 'Draw Colored Lines',
               description:
-                  'All the letters displayed on screen belong to one of the secret words. There are no junk or filler letters!',
+                  'Drag your finger across adjacent letters in the jumble. A glowing colored line will highlight your word!',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
-              icon: Icons.spellcheck,
-              color: const Color(0xFF74C69D),
-              title: 'Form Hidden Words',
+              icon: Icons.grid_view_rounded,
+              color: const Color(0xFFE0AAFF),
+              title: '100% Target Letters',
               description:
-                  'Tap letters from the scramble pool to form a word, then press SUBMIT to uncover it.',
+                  'Every single letter in the jumble belongs to one of the secret words needed to solve the puzzle.',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.lightbulb,
               color: const Color(0xFFFFD700),
-              title: 'Use Hints & Shuffles',
+              title: 'Need a Hint?',
               description:
-                  'Stuck? Tap Shuffle to reorganize the letter pool or use a Hint to reveal a letter slot!',
+                  'Tap the Hint button to reveal a letter slot in one of the hidden words.',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.workspace_premium,
-              color: const Color(0xFFFF9E00),
+              color: const Color(0xFF74C69D),
               title: 'Complete the Myst',
               description:
-                  'When all target words are solved, 100% of the visible letter tiles will be consumed and the puzzle is solved!',
+                  'Solve all secret words to lock in glowing lines across the entire jumble board!',
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -86,7 +86,7 @@ class HowToPlayDialog extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'GOT IT! LET\'S PLAY',
+                  'GOT IT! LET\'S DRAW',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
