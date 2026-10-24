@@ -23,9 +23,9 @@ class _GameScreenState extends State<GameScreen> {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
-  late List<List<LetterTile?>> _grid;
-  int _rows = 4;
-  int _cols = 4;
+
+  double _boardWidth = 0.0;
+  double _boardHeight = 0.0;
 
   final List<LetterTile> _selectedTiles = [];
   final List<SolvedWordLine> _solvedLines = [];
@@ -75,104 +75,24 @@ class _GameScreenState extends State<GameScreen> {
     // 1. Target Words
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
 
-    // 2. Determine grid size
-    final totalChars = level.totalLetters;
-    if (totalChars <= 16) {
-      _rows = 4;
-      _cols = 4;
-    } else if (totalChars <= 20) {
-      _rows = 5;
-      _cols = 4;
-    } else if (totalChars <= 25) {
-      _rows = 5;
-      _cols = 5;
-    } else {
-      _rows = 6;
-      _cols = 5;
-    }
-
-    _grid = List.generate(_rows, (_) => List.generate(_cols, (_) => null));
+    // 2. Build letter tiles from target words
     _allTiles = [];
-
-    // 3. Place target words in a jumble matrix with snake paths
-    final rand = Random();
     int tileCounter = 0;
 
     for (int wordIdx = 0; wordIdx < level.words.length; wordIdx++) {
       final word = level.words[wordIdx];
-      bool placed = false;
-
-      for (int attempt = 0; attempt < 100; attempt++) {
-        final startR = rand.nextInt(_rows);
-        final startC = rand.nextInt(_cols);
-
-        if (_grid[startR][startC] != null) continue;
-
-        final path = _findSnakePath(startR, startC, word.length);
-        if (path != null && path.length == word.length) {
-          // Place word along path
-          for (int i = 0; i < word.length; i++) {
-            final pt = path[i];
-            final tile = LetterTile(
-              id: 'tile_${tileCounter++}_${word[i]}',
-              letter: word[i],
-              row: pt.item1,
-              col: pt.item2,
-            );
-            _grid[pt.item1][pt.item2] = tile;
-            _allTiles.add(tile);
-          }
-          placed = true;
-          break;
-        }
-      }
-
-      // Fallback placement if random snake failed
-      if (!placed) {
-        for (int r = 0; r < _rows; r++) {
-          for (int c = 0; c < _cols; c++) {
-            if (_grid[r][c] == null && word.isNotEmpty) {
-              final path = _findSnakePath(r, c, word.length);
-              final actualPath = path ?? _findAnyOpenCells(r, c, word.length);
-              for (int i = 0; i < actualPath.length; i++) {
-                final pt = actualPath[i];
-                if (i < word.length) {
-                  final tile = LetterTile(
-                    id: 'tile_${tileCounter++}_${word[i]}',
-                    letter: word[i],
-                    row: pt.item1,
-                    col: pt.item2,
-                  );
-                  _grid[pt.item1][pt.item2] = tile;
-                  _allTiles.add(tile);
-                }
-              }
-              placed = true;
-              break;
-            }
-          }
-          if (placed) break;
-        }
+      for (int charIdx = 0; charIdx < word.length; charIdx++) {
+        _allTiles.add(
+          LetterTile(
+            id: 'tile_${tileCounter++}_${word[charIdx]}',
+            letter: word[charIdx],
+          ),
+        );
       }
     }
 
-    // Fill remaining empty cells with fallback letters if needed
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        if (_grid[r][c] == null) {
-          final fallbackChar =
-              level.words[rand.nextInt(level.words.length)][0];
-          final tile = LetterTile(
-            id: 'tile_${tileCounter++}_$fallbackChar',
-            letter: fallbackChar,
-            row: r,
-            col: c,
-          );
-          _grid[r][c] = tile;
-          _allTiles.add(tile);
-        }
-      }
-    }
+    // Shuffle tiles around the circular wheel
+    _allTiles.shuffle(Random());
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -184,66 +104,28 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  List<Tuple2>? _findSnakePath(int startR, int startC, int length) {
-    final List<Tuple2> path = [Tuple2(startR, startC)];
-    final Set<String> visited = {'$startR,$startC'};
-    final rand = Random();
+  void _shuffleWheel() {
+    setState(() {
+      for (var t in _selectedTiles) {
+        t.isSelected = false;
+      }
+      _selectedTiles.clear();
 
-    final dirs = [
-      const Tuple2(-1, 0),
-      const Tuple2(1, 0),
-      const Tuple2(0, -1),
-      const Tuple2(0, 1),
-      const Tuple2(-1, -1),
-      const Tuple2(-1, 1),
-      const Tuple2(1, -1),
-      const Tuple2(1, 1),
-    ];
+      final unused = _allTiles.where((t) => !t.isUsed).toList();
+      unused.shuffle(Random());
 
-    bool dfs(int currR, int currC) {
-      if (path.length == length) return true;
-
-      dirs.shuffle(rand);
-      for (var d in dirs) {
-        final nr = currR + d.item1;
-        final nc = currC + d.item2;
-
-        if (nr >= 0 &&
-            nr < _rows &&
-            nc >= 0 &&
-            nc < _cols &&
-            _grid[nr][nc] == null &&
-            !visited.contains('$nr,$nc')) {
-          visited.add('$nr,$nc');
-          path.add(Tuple2(nr, nc));
-
-          if (dfs(nr, nc)) return true;
-
-          path.removeLast();
-          visited.remove('$nr,$nc');
+      int unusedIdx = 0;
+      for (int i = 0; i < _allTiles.length; i++) {
+        if (!_allTiles[i].isUsed) {
+          _allTiles[i] = unused[unusedIdx++];
         }
       }
-      return false;
-    }
 
-    if (dfs(startR, startC)) return path;
-    return null;
+      _feedbackMessage = 'Wheel shuffled!';
+    });
   }
 
-  List<Tuple2> _findAnyOpenCells(int startR, int startC, int count) {
-    final List<Tuple2> result = [];
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        if (_grid[r][c] == null) {
-          result.add(Tuple2(r, c));
-          if (result.length == count) return result;
-        }
-      }
-    }
-    return result;
-  }
-
-  // Touch Gesture Handling
+  // Circular Touch & Gesture Line Drawing
   void _onPanStart(DragStartDetails details) {
     _updateTouchPosition(details.localPosition);
   }
@@ -256,9 +138,8 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _currentTouchPoint = localPos;
 
-      // Find tile near touch position
       LetterTile? touchedTile;
-      double minDistance = 32.0; // Hit threshold radius
+      double minDistance = 38.0; // Touch hit radius
 
       for (var tile in _allTiles) {
         if (tile.centerPosition != null) {
@@ -276,21 +157,14 @@ class _GameScreenState extends State<GameScreen> {
           touchedTile.isSelected = true;
           _feedbackMessage = null;
         } else {
-          // Check for backtracking
+          // Backtracking support
           if (_selectedTiles.length > 1 &&
               _selectedTiles[_selectedTiles.length - 2] == touchedTile) {
             final removed = _selectedTiles.removeLast();
             removed.isSelected = false;
           } else if (!_selectedTiles.contains(touchedTile)) {
-            // Check if touched tile is adjacent to last selected tile
-            final last = _selectedTiles.last;
-            final isAdjacent = (touchedTile.row - last.row).abs() <= 1 &&
-                (touchedTile.col - last.col).abs() <= 1;
-
-            if (isAdjacent) {
-              _selectedTiles.add(touchedTile);
-              touchedTile.isSelected = true;
-            }
+            _selectedTiles.add(touchedTile);
+            touchedTile.isSelected = true;
           }
         }
       }
@@ -302,7 +176,6 @@ class _GameScreenState extends State<GameScreen> {
 
     final guess = _selectedTiles.map((t) => t.letter).join();
 
-    // Check if guess matches any unsolved target word
     TargetWord? matchedWord;
     for (var target in _targetWords) {
       if (!target.isSolved && target.word == guess) {
@@ -313,7 +186,6 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       if (matchedWord != null) {
-        // MATCH FOUND!
         matchedWord.isSolved = true;
         final color = _linePalette[_solvedLines.length % _linePalette.length];
 
@@ -336,7 +208,7 @@ class _GameScreenState extends State<GameScreen> {
         }
 
         _score += guess.length * 100;
-        _feedbackMessage = '✨ Unscrambled "${matchedWord.word}"!';
+        _feedbackMessage = '✨ Solved "${matchedWord.word}"!';
 
         if (_targetWords.every((w) => w.isSolved)) {
           _handleLevelCompleted();
@@ -467,51 +339,38 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF190933),
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _currentLevel.name,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              'Draw a line across letters to solve',
-              style: const TextStyle(
-                color: Color(0xFFE0AAFF),
-                fontSize: 12,
-              ),
-            ),
-          ],
+        title: Text(
+          _currentLevel.name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF240046),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF5A189A)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.timer_outlined,
-                      color: Color(0xFFFFD700), size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF240046),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF5A189A)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.timer_outlined,
+                    color: Color(0xFFFFD700), size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           IconButton(
@@ -522,29 +381,29 @@ class _GameScreenState extends State<GameScreen> {
               );
             },
             icon: const Icon(Icons.help_outline_rounded,
-                color: Color(0xFFE0AAFF)),
+                color: Color(0xFFE0AAFF), size: 22),
           ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Target Words Panel
+            // Target Words Panel at Top
             Container(
               width: double.infinity,
               padding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
               decoration: const BoxDecoration(
                 color: Color(0xFF190933),
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
                 ),
               ),
               child: Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 4.0,
-                runSpacing: 4.0,
+                spacing: 2.0,
+                runSpacing: 2.0,
                 children: List.generate(_targetWords.length, (index) {
                   return WordSlotWidget(
                     targetWord: _targetWords[index],
@@ -554,43 +413,59 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
 
-            // Level Stats & Hint Row
+            // Stats & Controls Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Unsolved: $remainingLetters / ${_currentLevel.totalLetters}',
+                    'Unsolved: $remainingLetters',
                     style: const TextStyle(
                       color: Color(0xFFE0AAFF),
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _hintsRemaining > 0 ? _onHint : null,
-                    icon: const Icon(Icons.lightbulb_outline_rounded, size: 16),
-                    label: Text('Hint ($_hintsRemaining)'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7B2CBF),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF240046),
-                      disabledForegroundColor: Colors.white24,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 6.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: _shuffleWheel,
+                        icon: const Icon(Icons.shuffle_rounded,
+                            color: Color(0xFFE0AAFF), size: 18),
+                        tooltip: 'Shuffle Wheel',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        onPressed: _hintsRemaining > 0 ? _onHint : null,
+                        icon: const Icon(Icons.lightbulb_outline_rounded,
+                            size: 14),
+                        label: Text('Hint ($_hintsRemaining)'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7B2CBF),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(0xFF240046),
+                          disabledForegroundColor: Colors.white24,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10.0, vertical: 4.0),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
                     'Score: $_score',
                     style: const TextStyle(
                       color: Color(0xFFFFD700),
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -598,25 +473,24 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-            // Active Traced Word Pill
-            Container(
-              height: 42,
-              alignment: Alignment.center,
+            // Active Traced Word Floating Banner
+            SizedBox(
+              height: 38,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 150),
                 opacity: currentWordText.isNotEmpty ? 1.0 : 0.0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 8.0),
+                      horizontal: 16.0, vertical: 6.0),
                   decoration: BoxDecoration(
                     color: const Color(0xFF00F5D4),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF00F5D4).withAlpha(160),
-                        blurRadius: 12,
+                        color: const Color(0xFF00F5D4).withAlpha(140),
+                        blurRadius: 10,
                       )
                     ],
                   ),
@@ -624,9 +498,9 @@ class _GameScreenState extends State<GameScreen> {
                     currentWordText,
                     style: const TextStyle(
                       color: Color(0xFF081C15),
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
+                      letterSpacing: 1.5,
                     ),
                   ),
                 ),
@@ -635,24 +509,25 @@ class _GameScreenState extends State<GameScreen> {
 
             if (_feedbackMessage != null && _feedbackMessage!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                padding: const EdgeInsets.symmetric(vertical: 2.0),
                 child: Text(
                   _feedbackMessage!,
                   style: const TextStyle(
                     color: Color(0xFFFF9E00),
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-            // Interactive Jumble Board with Drag & Line Drawing
+            // Interactive Circular Jumble Wheel
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(12.0),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 6.0),
+                padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
                   color: const Color(0xFF140032).withAlpha(200),
                   borderRadius: BorderRadius.circular(24),
@@ -660,19 +535,51 @@ class _GameScreenState extends State<GameScreen> {
                 ),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final cellWidth = constraints.maxWidth / _cols;
-                    final cellHeight = constraints.maxHeight / _rows;
+                    _boardWidth = constraints.maxWidth;
+                    _boardHeight = constraints.maxHeight;
 
-                    // Calculate center position for each tile
-                    for (int r = 0; r < _rows; r++) {
-                      for (int c = 0; c < _cols; c++) {
-                        final tile = _grid[r][c];
-                        if (tile != null) {
-                          tile.centerPosition = Offset(
-                            (c + 0.5) * cellWidth,
-                            (r + 0.5) * cellHeight,
-                          );
-                        }
+                    final center = Offset(_boardWidth / 2, _boardHeight / 2);
+                    final minDim = min(_boardWidth, _boardHeight);
+
+                    // Dynamic Tile Size
+                    final double tileSize = (minDim * 0.16).clamp(42.0, 58.0);
+
+                    // Arrange tiles in a Circular Wheel Layout
+                    final totalTiles = _allTiles.length;
+                    if (totalTiles <= 12) {
+                      final double radius = minDim * 0.36;
+                      for (int i = 0; i < totalTiles; i++) {
+                        final angle =
+                            (2 * pi * i / totalTiles) - (pi / 2);
+                        _allTiles[i].centerPosition = Offset(
+                          center.dx + radius * cos(angle),
+                          center.dy + radius * sin(angle),
+                        );
+                      }
+                    } else {
+                      // Concentric Circular Rings for larger letter counts
+                      final int outerCount = (totalTiles * 0.65).ceil();
+                      final int innerCount = totalTiles - outerCount;
+
+                      final double outerRadius = minDim * 0.38;
+                      final double innerRadius = minDim * 0.22;
+
+                      for (int i = 0; i < outerCount; i++) {
+                        final angle =
+                            (2 * pi * i / outerCount) - (pi / 2);
+                        _allTiles[i].centerPosition = Offset(
+                          center.dx + outerRadius * cos(angle),
+                          center.dy + outerRadius * sin(angle),
+                        );
+                      }
+
+                      for (int i = 0; i < innerCount; i++) {
+                        final angle =
+                            (2 * pi * i / innerCount) - (pi / 2) + (pi / innerCount);
+                        _allTiles[outerCount + i].centerPosition = Offset(
+                          center.dx + innerRadius * cos(angle),
+                          center.dy + innerRadius * sin(angle),
+                        );
                       }
                     }
 
@@ -681,12 +588,23 @@ class _GameScreenState extends State<GameScreen> {
                         .toList();
 
                     return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onPanStart: _onPanStart,
                       onPanUpdate: _onPanUpdate,
                       onPanEnd: _onPanEnd,
                       child: Stack(
                         children: [
-                          // Custom Painter rendering the glowing lines!
+                          // Background Glowing Orbit Ring
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: OrbitRingPainter(
+                                center: center,
+                                radius: minDim * 0.36,
+                              ),
+                            ),
+                          ),
+
+                          // Glowing Word Lines Painter
                           Positioned.fill(
                             child: CustomPaint(
                               painter: WordLinePainter(
@@ -698,17 +616,18 @@ class _GameScreenState extends State<GameScreen> {
                             ),
                           ),
 
-                          // Letter Tile Widgets positioned on the jumble grid
+                          // Circular Tile Widgets
                           ..._allTiles.map((tile) {
-                            final x = (tile.col + 0.5) * cellWidth - 27;
-                            final y = (tile.row + 0.5) * cellHeight - 27;
+                            final pos = tile.centerPosition ?? center;
+                            final x = pos.dx - (tileSize / 2);
+                            final y = pos.dy - (tileSize / 2);
 
                             return Positioned(
                               left: x,
                               top: y,
                               child: LetterTileWidget(
                                 tile: tile,
-                                size: 54.0,
+                                size: tileSize,
                                 activeColor: const Color(0xFF00F5D4),
                               ),
                             );
@@ -727,8 +646,24 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class Tuple2 {
-  final int item1;
-  final int item2;
-  const Tuple2(this.item1, this.item2);
+class OrbitRingPainter extends CustomPainter {
+  final Offset center;
+  final double radius;
+
+  OrbitRingPainter({required this.center, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF3C096C).withAlpha(120)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant OrbitRingPainter oldDelegate) {
+    return oldDelegate.center != center || oldDelegate.radius != radius;
+  }
 }

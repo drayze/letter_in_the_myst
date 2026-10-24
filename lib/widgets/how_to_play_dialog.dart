@@ -44,17 +44,17 @@ class HowToPlayDialog extends StatelessWidget {
             _buildRuleItem(
               icon: Icons.gesture,
               color: const Color(0xFF00F5D4),
-              title: 'Draw Colored Lines',
+              title: 'Trace Circular Wheel',
               description:
-                  'Drag your finger across adjacent letters in the jumble. A glowing colored line will highlight your word!',
+                  'Drag your finger across letters on the circular wheel. A glowing colored line will trace your word!',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
-              icon: Icons.grid_view_rounded,
+              icon: Icons.all_inclusive,
               color: const Color(0xFFE0AAFF),
               title: '100% Target Letters',
               description:
-                  'Every single letter in the jumble belongs to one of the secret words needed to solve the puzzle.',
+                  'Every single letter on the wheel belongs to one of the secret words needed to solve the puzzle.',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
@@ -70,7 +70,7 @@ class HowToPlayDialog extends StatelessWidget {
               color: const Color(0xFF74C69D),
               title: 'Complete the Myst',
               description:
-                  'Solve all secret words to lock in glowing lines across the entire jumble board!',
+                  'Solve all secret words to lock in glowing lines across the entire circular wheel!',
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -86,7 +86,7 @@ class HowToPlayDialog extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'GOT IT! LET\'S DRAW',
+                  'GOT IT! LET\'S PLAY',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
