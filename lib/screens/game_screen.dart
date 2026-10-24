@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
+import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/letter_tile_widget.dart';
 import '../widgets/victory_dialog.dart';
@@ -19,13 +20,22 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen>
+    with SingleTickerProviderStateMixin {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
 
+  final GlobalKey _screenStackKey = GlobalKey();
+  final GlobalKey _wheelKey = GlobalKey();
+  final Map<String, GlobalKey> _slotKeys = {};
+
+  late AnimationController _flightController;
+  final List<FlyingTileData> _activeFlyingTiles = [];
+
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
+  double _currentTileSize = 52.0;
 
   final List<LetterTile> _selectedTiles = [];
   final List<SolvedWordLine> _solvedLines = [];
@@ -51,12 +61,22 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    _flightController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+
+    _flightController.addListener(() {
+      setState(() {});
+    });
+
     _initLevel(widget.level);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _flightController.dispose();
     super.dispose();
   }
 
@@ -71,9 +91,19 @@ class _GameScreenState extends State<GameScreen> {
     _selectedTiles.clear();
     _solvedLines.clear();
     _revealedIndices.clear();
+    _activeFlyingTiles.clear();
+    _slotKeys.clear();
 
     // 1. Target Words
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
+
+    // Create slot keys for character slots
+    for (int wIdx = 0; wIdx < level.words.length; wIdx++) {
+      final word = level.words[wIdx];
+      for (int cIdx = 0; cIdx < word.length; cIdx++) {
+        _slotKeys['${wIdx}_$cIdx'] = GlobalKey();
+      }
+    }
 
     // 2. Build letter tiles from target words
     _allTiles = [];
@@ -91,7 +121,7 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // Shuffle tiles around the circular wheel
+    // Shuffle tiles on circular wheel
     _allTiles.shuffle(Random());
 
     // Start Timer
@@ -125,12 +155,14 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // Circular Touch & Gesture Line Drawing
+  // Touch & Gesture Line Drawing
   void _onPanStart(DragStartDetails details) {
+    if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
+    if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
   }
 
@@ -139,10 +171,10 @@ class _GameScreenState extends State<GameScreen> {
       _currentTouchPoint = localPos;
 
       LetterTile? touchedTile;
-      double minDistance = 38.0; // Touch hit radius
+      double minDistance = 38.0;
 
       for (var tile in _allTiles) {
-        if (tile.centerPosition != null) {
+        if (!tile.isUsed && tile.centerPosition != null) {
           final dist = (tile.centerPosition! - localPos).distance;
           if (dist < minDistance) {
             minDistance = dist;
@@ -157,7 +189,7 @@ class _GameScreenState extends State<GameScreen> {
           touchedTile.isSelected = true;
           _feedbackMessage = null;
         } else {
-          // Backtracking support
+          // Backtracking
           if (_selectedTiles.length > 1 &&
               _selectedTiles[_selectedTiles.length - 2] == touchedTile) {
             final removed = _selectedTiles.removeLast();
@@ -176,47 +208,62 @@ class _GameScreenState extends State<GameScreen> {
 
     final guess = _selectedTiles.map((t) => t.letter).join();
 
-    TargetWord? matchedWord;
-    for (var target in _targetWords) {
-      if (!target.isSolved && target.word == guess) {
-        matchedWord = target;
+    int matchedWordIdx = -1;
+    for (int i = 0; i < _targetWords.length; i++) {
+      if (!_targetWords[i].isSolved && _targetWords[i].word == guess) {
+        matchedWordIdx = i;
         break;
       }
     }
 
-    setState(() {
-      if (matchedWord != null) {
-        matchedWord.isSolved = true;
-        final color = _linePalette[_solvedLines.length % _linePalette.length];
+    if (matchedWordIdx != -1) {
+      final matchedWord = _targetWords[matchedWordIdx];
+      final color = _linePalette[_solvedLines.length % _linePalette.length];
 
-        final linePoints = _selectedTiles
-            .map((t) => t.centerPosition ?? Offset.zero)
-            .toList();
+      // Prepare Flying Tile Overlay Animations
+      _activeFlyingTiles.clear();
 
-        _solvedLines.add(
-          SolvedWordLine(
-            word: matchedWord.word,
-            points: linePoints,
+      for (int i = 0; i < _selectedTiles.length; i++) {
+        final tile = _selectedTiles[i];
+        final startPos = _getWheelTileCenterInScreen(tile) ?? Offset.zero;
+        final targetPos = _getSlotBoxCenterInScreen(matchedWordIdx, i) ?? startPos;
+
+        _activeFlyingTiles.add(
+          FlyingTileData(
+            letter: tile.letter,
+            startPos: startPos,
+            endPos: targetPos,
             color: color,
           ),
         );
 
-        for (var tile in _selectedTiles) {
-          tile.isUsed = true;
-          tile.isSelected = false;
-          tile.solvedColor = color;
-        }
+        // Mark tile as used so it disappears from scramble wheel
+        tile.isUsed = true;
+        tile.isSelected = false;
+        tile.solvedColor = color;
+      }
 
-        _score += guess.length * 100;
-        _feedbackMessage = '✨ Solved "${matchedWord.word}"!';
+      _score += guess.length * 100;
+      _feedbackMessage = '✨ Solved "${matchedWord.word}"!';
+      _selectedTiles.clear();
+      _currentTouchPoint = null;
 
-        if (_targetWords.every((w) => w.isSolved)) {
-          _handleLevelCompleted();
-        }
-      } else {
-        final bool alreadySolved =
-            _targetWords.any((w) => w.isSolved && w.word == guess);
+      // Launch Flying Animation
+      _flightController.forward(from: 0.0).then((_) {
+        setState(() {
+          matchedWord.isSolved = true;
+          _activeFlyingTiles.clear();
 
+          if (_targetWords.every((w) => w.isSolved)) {
+            _handleLevelCompleted();
+          }
+        });
+      });
+    } else {
+      final bool alreadySolved =
+          _targetWords.any((w) => w.isSolved && w.word == guess);
+
+      setState(() {
         if (alreadySolved) {
           _feedbackMessage = 'Already found "$guess"!';
         } else if (guess.length >= 2) {
@@ -226,15 +273,44 @@ class _GameScreenState extends State<GameScreen> {
         for (var tile in _selectedTiles) {
           tile.isSelected = false;
         }
-      }
 
-      _selectedTiles.clear();
-      _currentTouchPoint = null;
-    });
+        _selectedTiles.clear();
+        _currentTouchPoint = null;
+      });
+    }
+  }
+
+  Offset? _getWheelTileCenterInScreen(LetterTile tile) {
+    final wheelContext = _wheelKey.currentContext;
+    final screenContext = _screenStackKey.currentContext;
+
+    if (wheelContext != null && screenContext != null && tile.centerPosition != null) {
+      final RenderBox wheelBox = wheelContext.findRenderObject() as RenderBox;
+      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
+      final Offset wheelPosInScreen =
+          wheelBox.localToGlobal(Offset.zero, ancestor: screenBox);
+      return wheelPosInScreen + tile.centerPosition!;
+    }
+    return tile.centerPosition;
+  }
+
+  Offset? _getSlotBoxCenterInScreen(int wordIdx, int charIdx) {
+    final key = _slotKeys['${wordIdx}_$charIdx'];
+    final context = key?.currentContext;
+    final screenContext = _screenStackKey.currentContext;
+
+    if (context != null && screenContext != null) {
+      final RenderBox box = context.findRenderObject() as RenderBox;
+      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
+      final Offset globalBoxPos =
+          box.localToGlobal(Offset.zero, ancestor: screenBox);
+      return globalBoxPos + Offset(box.size.width / 2, box.size.height / 2);
+    }
+    return null;
   }
 
   void _onHint() {
-    if (_hintsRemaining <= 0) return;
+    if (_hintsRemaining <= 0 || _flightController.isAnimating) return;
 
     int unsolvedWordIdx = -1;
     for (int i = 0; i < _targetWords.length; i++) {
@@ -386,259 +462,285 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
+        child: Stack(
+          key: _screenStackKey,
+          clipBehavior: Clip.none,
           children: [
-            // Target Words Panel at Top
-            Container(
-              width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
-              decoration: const BoxDecoration(
-                color: Color(0xFF190933),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 2.0,
-                runSpacing: 2.0,
-                children: List.generate(_targetWords.length, (index) {
-                  return WordSlotWidget(
-                    targetWord: _targetWords[index],
-                    revealedIndices: _revealedIndices[index] ?? {},
-                  );
-                }),
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            // Stats & Controls Row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Unsolved: $remainingLetters',
-                    style: const TextStyle(
-                      color: Color(0xFFE0AAFF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+            // Layer 1: Main Game UI Column
+            Column(
+              children: [
+                // Target Secret Words Panel
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 6.0),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF190933),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
                     ),
                   ),
-                  Row(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 2.0,
+                    runSpacing: 2.0,
+                    children: List.generate(_targetWords.length, (index) {
+                      return WordSlotWidget(
+                        wordIndex: index,
+                        targetWord: _targetWords[index],
+                        revealedIndices: _revealedIndices[index] ?? {},
+                        slotKeys: _slotKeys,
+                      );
+                    }),
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Stats & Controls Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        onPressed: _shuffleWheel,
-                        icon: const Icon(Icons.shuffle_rounded,
-                            color: Color(0xFFE0AAFF), size: 18),
-                        tooltip: 'Shuffle Wheel',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                      Text(
+                        'Unsolved: $remainingLetters',
+                        style: const TextStyle(
+                          color: Color(0xFFE0AAFF),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed: _hintsRemaining > 0 ? _onHint : null,
-                        icon: const Icon(Icons.lightbulb_outline_rounded,
-                            size: 14),
-                        label: Text('Hint ($_hintsRemaining)'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7B2CBF),
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor: const Color(0xFF240046),
-                          disabledForegroundColor: Colors.white24,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0, vertical: 4.0),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: _shuffleWheel,
+                            icon: const Icon(Icons.shuffle_rounded,
+                                color: Color(0xFFE0AAFF), size: 18),
+                            tooltip: 'Shuffle Wheel',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                           ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: _hintsRemaining > 0 ? _onHint : null,
+                            icon: const Icon(Icons.lightbulb_outline_rounded,
+                                size: 14),
+                            label: Text('Hint ($_hintsRemaining)'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF7B2CBF),
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: const Color(0xFF240046),
+                              disabledForegroundColor: Colors.white24,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0, vertical: 4.0),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'Score: $_score',
+                        style: const TextStyle(
+                          color: Color(0xFFFFD700),
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    'Score: $_score',
-                    style: const TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            // Active Traced Word Floating Banner
-            SizedBox(
-              height: 38,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 150),
-                opacity: currentWordText.isNotEmpty ? 1.0 : 0.0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 6.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00F5D4),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF00F5D4).withAlpha(140),
-                        blurRadius: 10,
-                      )
-                    ],
-                  ),
-                  child: Text(
-                    currentWordText,
-                    style: const TextStyle(
-                      color: Color(0xFF081C15),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
                 ),
-              ),
-            ),
 
-            if (_feedbackMessage != null && _feedbackMessage!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2.0),
-                child: Text(
-                  _feedbackMessage!,
-                  style: const TextStyle(
-                    color: Color(0xFFFF9E00),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+                const SizedBox(height: 4),
 
-            const SizedBox(height: 4),
-
-            // Interactive Circular Jumble Wheel
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: 12.0, vertical: 6.0),
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF140032).withAlpha(200),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF3C096C), width: 1.5),
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    _boardWidth = constraints.maxWidth;
-                    _boardHeight = constraints.maxHeight;
-
-                    final center = Offset(_boardWidth / 2, _boardHeight / 2);
-                    final minDim = min(_boardWidth, _boardHeight);
-
-                    // Dynamic Tile Size
-                    final double tileSize = (minDim * 0.16).clamp(42.0, 58.0);
-
-                    // Arrange tiles in a Circular Wheel Layout
-                    final totalTiles = _allTiles.length;
-                    if (totalTiles <= 12) {
-                      final double radius = minDim * 0.36;
-                      for (int i = 0; i < totalTiles; i++) {
-                        final angle =
-                            (2 * pi * i / totalTiles) - (pi / 2);
-                        _allTiles[i].centerPosition = Offset(
-                          center.dx + radius * cos(angle),
-                          center.dy + radius * sin(angle),
-                        );
-                      }
-                    } else {
-                      // Concentric Circular Rings for larger letter counts
-                      final int outerCount = (totalTiles * 0.65).ceil();
-                      final int innerCount = totalTiles - outerCount;
-
-                      final double outerRadius = minDim * 0.38;
-                      final double innerRadius = minDim * 0.22;
-
-                      for (int i = 0; i < outerCount; i++) {
-                        final angle =
-                            (2 * pi * i / outerCount) - (pi / 2);
-                        _allTiles[i].centerPosition = Offset(
-                          center.dx + outerRadius * cos(angle),
-                          center.dy + outerRadius * sin(angle),
-                        );
-                      }
-
-                      for (int i = 0; i < innerCount; i++) {
-                        final angle =
-                            (2 * pi * i / innerCount) - (pi / 2) + (pi / innerCount);
-                        _allTiles[outerCount + i].centerPosition = Offset(
-                          center.dx + innerRadius * cos(angle),
-                          center.dy + innerRadius * sin(angle),
-                        );
-                      }
-                    }
-
-                    final dragPoints = _selectedTiles
-                        .map((t) => t.centerPosition ?? Offset.zero)
-                        .toList();
-
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onPanStart: _onPanStart,
-                      onPanUpdate: _onPanUpdate,
-                      onPanEnd: _onPanEnd,
-                      child: Stack(
-                        children: [
-                          // Background Glowing Orbit Ring
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: OrbitRingPainter(
-                                center: center,
-                                radius: minDim * 0.36,
-                              ),
-                            ),
-                          ),
-
-                          // Glowing Word Lines Painter
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: WordLinePainter(
-                                solvedLines: _solvedLines,
-                                currentDragPoints: dragPoints,
-                                currentTouchPoint: _currentTouchPoint,
-                                activeColor: const Color(0xFF00F5D4),
-                              ),
-                            ),
-                          ),
-
-                          // Circular Tile Widgets
-                          ..._allTiles.map((tile) {
-                            final pos = tile.centerPosition ?? center;
-                            final x = pos.dx - (tileSize / 2);
-                            final y = pos.dy - (tileSize / 2);
-
-                            return Positioned(
-                              left: x,
-                              top: y,
-                              child: LetterTileWidget(
-                                tile: tile,
-                                size: tileSize,
-                                activeColor: const Color(0xFF00F5D4),
-                              ),
-                            );
-                          }),
+                // Active Traced Word Floating Banner
+                SizedBox(
+                  height: 38,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 150),
+                    opacity: currentWordText.isNotEmpty ? 1.0 : 0.0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 6.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00F5D4),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00F5D4).withAlpha(140),
+                            blurRadius: 10,
+                          )
                         ],
                       ),
-                    );
-                  },
+                      child: Text(
+                        currentWordText,
+                        style: const TextStyle(
+                          color: Color(0xFF081C15),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+
+                if (_feedbackMessage != null && _feedbackMessage!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: Text(
+                      _feedbackMessage!,
+                      style: const TextStyle(
+                        color: Color(0xFFFF9E00),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 4),
+
+                // Interactive Circular Wheel Board Area
+                Expanded(
+                  child: Container(
+                    key: _wheelKey,
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 6.0),
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF140032).withAlpha(200),
+                      borderRadius: BorderRadius.circular(24),
+                      border:
+                          Border.all(color: const Color(0xFF3C096C), width: 1.5),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        _boardWidth = constraints.maxWidth;
+                        _boardHeight = constraints.maxHeight;
+
+                        final center =
+                            Offset(_boardWidth / 2, _boardHeight / 2);
+                        final minDim = min(_boardWidth, _boardHeight);
+
+                        _currentTileSize =
+                            (minDim * 0.16).clamp(42.0, 58.0);
+
+                        // Calculate tile positions on circular wheel for active tiles
+                        final activeTiles =
+                            _allTiles.where((t) => !t.isUsed).toList();
+                        final totalActive = activeTiles.length;
+
+                        if (totalActive <= 12) {
+                          final double radius = minDim * 0.36;
+                          for (int i = 0; i < totalActive; i++) {
+                            final angle =
+                                (2 * pi * i / totalActive) - (pi / 2);
+                            activeTiles[i].centerPosition = Offset(
+                              center.dx + radius * cos(angle),
+                              center.dy + radius * sin(angle),
+                            );
+                          }
+                        } else {
+                          final int outerCount = (totalActive * 0.65).ceil();
+                          final int innerCount = totalActive - outerCount;
+
+                          final double outerRadius = minDim * 0.38;
+                          final double innerRadius = minDim * 0.22;
+
+                          for (int i = 0; i < outerCount; i++) {
+                            final angle =
+                                (2 * pi * i / outerCount) - (pi / 2);
+                            activeTiles[i].centerPosition = Offset(
+                              center.dx + outerRadius * cos(angle),
+                              center.dy + outerRadius * sin(angle),
+                            );
+                          }
+
+                          for (int i = 0; i < innerCount; i++) {
+                            final angle = (2 * pi * i / innerCount) -
+                                (pi / 2) +
+                                (pi / innerCount);
+                            activeTiles[outerCount + i].centerPosition = Offset(
+                              center.dx + innerRadius * cos(angle),
+                              center.dy + innerRadius * sin(angle),
+                            );
+                          }
+                        }
+
+                        final dragPoints = _selectedTiles
+                            .map((t) => t.centerPosition ?? Offset.zero)
+                            .toList();
+
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onPanStart: _onPanStart,
+                          onPanUpdate: _onPanUpdate,
+                          onPanEnd: _onPanEnd,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Orbit Ring Background
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: OrbitRingPainter(
+                                    center: center,
+                                    radius: minDim * 0.36,
+                                  ),
+                                ),
+                              ),
+
+                              // Glowing Drag Line Painter
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: WordLinePainter(
+                                    solvedLines: _solvedLines,
+                                    currentDragPoints: dragPoints,
+                                    currentTouchPoint: _currentTouchPoint,
+                                    activeColor: const Color(0xFF00F5D4),
+                                  ),
+                                ),
+                              ),
+
+                              // Circular Tiles
+                              ..._allTiles.where((t) => !t.isUsed).map((tile) {
+                                final pos = tile.centerPosition ?? center;
+                                final x = pos.dx - (_currentTileSize / 2);
+                                final y = pos.dy - (_currentTileSize / 2);
+
+                                return Positioned(
+                                  left: x,
+                                  top: y,
+                                  child: LetterTileWidget(
+                                    tile: tile,
+                                    size: _currentTileSize,
+                                    activeColor: const Color(0xFF00F5D4),
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
+
+            // Layer 2: Topmost Screen Overlay for Flying Tile Animations!
+            ..._activeFlyingTiles.map((fTile) {
+              return FlyingTileWidget(
+                data: fTile,
+                progress: Curves.easeInOutCubic
+                    .transform(_flightController.value),
+                initialSize: _currentTileSize,
+              );
+            }),
           ],
         ),
       ),

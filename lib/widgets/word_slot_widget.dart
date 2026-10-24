@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../models/level.dart';
 
 class WordSlotWidget extends StatelessWidget {
+  final int wordIndex;
   final TargetWord targetWord;
   final Set<int> revealedIndices;
+  final Map<String, GlobalKey> slotKeys;
 
   const WordSlotWidget({
     super.key,
+    required this.wordIndex,
     required this.targetWord,
     required this.revealedIndices,
+    required this.slotKeys,
   });
 
   @override
@@ -46,6 +50,7 @@ class WordSlotWidget extends StatelessWidget {
             ...List.generate(targetWord.word.length, (index) {
               final char = targetWord.word[index];
               final isRevealedByHint = revealedIndices.contains(index);
+              final key = slotKeys['${wordIndex}_$index'];
 
               String displayChar = '';
               Color boxBgColor = const Color(0xFF240046);
@@ -68,6 +73,7 @@ class WordSlotWidget extends StatelessWidget {
               }
 
               return Container(
+                key: key,
                 margin: const EdgeInsets.symmetric(horizontal: 2.0),
                 width: 28,
                 height: 32,
