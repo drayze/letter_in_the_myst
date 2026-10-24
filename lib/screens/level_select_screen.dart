@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/level.dart';
+import '../services/score_manager.dart';
 import '../widgets/how_to_play_dialog.dart';
 import 'game_screen.dart';
 
@@ -12,31 +13,30 @@ class LevelSelectScreen extends StatefulWidget {
 }
 
 class _LevelSelectScreenState extends State<LevelSelectScreen> {
-  final Set<int> _completedLevelIds = {};
-
   void _openLevel(Level level) async {
-    final result = await Navigator.push<bool>(
+    await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => GameScreen(level: level),
       ),
     );
 
-    if (result == true) {
-      setState(() {
-        _completedLevelIds.add(level.id);
-      });
-    }
+    // Refresh score and level status upon returning
+    setState(() {});
   }
 
   void _openRandomLevel() async {
-    final nextId = LevelsData.levels.length + _completedLevelIds.length + 1;
+    final nextId = LevelsData.levels.length + ScoreManager().completedLevelIds.length + 1;
     final randomLevel = LevelsData.getRandomLevel(nextId);
     _openLevel(randomLevel);
   }
 
   @override
   Widget build(BuildContext context) {
+    final totalScore = ScoreManager().totalScore;
+    final highScore = ScoreManager().highScore;
+    final completedCount = ScoreManager().completedLevelIds.length;
+
     return Scaffold(
       backgroundColor: const Color(0xFF10002B),
       appBar: AppBar(
@@ -71,7 +71,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       ),
       body: CustomScrollView(
         slivers: [
-          // Banner / Endless mode header
+          // Total Score Banner & Controls Header
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.all(16.0),
@@ -105,16 +105,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFFFD700)),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.all_inclusive,
+                            const Icon(Icons.workspace_premium,
                                 color: Color(0xFFFFD700), size: 16),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
-                              'ENDLESS MYST',
-                              style: TextStyle(
+                              'TOTAL SCORE: $totalScore',
+                              style: const TextStyle(
                                 color: Color(0xFFFFD700),
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -122,34 +122,32 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         ),
                       ),
                       const Spacer(),
-                      IconButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => const HowToPlayDialog(),
-                          );
-                        },
-                        icon: const Icon(Icons.info_outline, color: Colors.white70),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF240046),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF5A189A)),
+                        ),
+                        child: Text(
+                          'BEST: $highScore',
+                          style: const TextStyle(
+                            color: Color(0xFFE0AAFF),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Unscramble Hidden Puzzles',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Every single letter shown on screen is part of one of the secret words. Find them all to clear the myst!',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildHeaderStat('Completed', '$completedCount Levels'),
+                      _buildHeaderStat('Words Solved', '${ScoreManager().totalWordsSolved} Words'),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
@@ -206,7 +204,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final level = LevelsData.levels[index];
-                  final isCompleted = _completedLevelIds.contains(level.id);
+                  final isCompleted = ScoreManager().completedLevelIds.contains(level.id);
+                  final bestScore = ScoreManager().getLevelBestScore(level.id);
 
                   return GestureDetector(
                     onTap: () => _openLevel(level),
@@ -281,13 +280,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                             ),
                           ),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(
-                                Icons.segment_rounded,
-                                color: Color(0xFFFF9E00),
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   '${level.words.length} secret words',
@@ -299,6 +293,15 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                   ),
                                 ),
                               ),
+                              if (bestScore > 0)
+                                Text(
+                                  '$bestScore pts',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFD700),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                             ],
                           ),
                         ],
@@ -313,6 +316,27 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeaderStat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white54, fontSize: 11),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
