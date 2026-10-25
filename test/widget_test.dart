@@ -6,8 +6,8 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const LettersInTheMystApp());
 
-    // Verify that the title appears.
+    // Verify that the title and score header appear.
     expect(find.text('Letters in the Myst'), findsWidgets);
-    expect(find.text('Unscramble Hidden Puzzles'), findsOneWidget);
+    expect(find.textContaining('TOTAL SCORE'), findsOneWidget);
   });
 }

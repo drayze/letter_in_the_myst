@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
+import '../services/score_manager.dart';
 import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/letter_tile_widget.dart';
@@ -345,24 +346,34 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
+    const int hintCost = 25;
+
     setState(() {
       _revealedIndices[unsolvedWordIdx]!.add(unrevealedCharIdx);
       if (hintTile != null) {
         hintTile.isHinted = true;
       }
       _hintsRemaining--;
+      _score = (_score - hintCost).clamp(0, 999999);
       _feedbackMessage =
-          'Hint: Word #${unsolvedWordIdx + 1} contains "$neededLetter"!';
+          'Hint (-$hintCost pts): Word #${unsolvedWordIdx + 1} contains "$neededLetter"!';
     });
   }
 
-  void _handleLevelCompleted() {
+  void _handleLevelCompleted() async {
     _isLevelCompleted = true;
     _timer?.cancel();
 
     final timeBonus = (300 - _timeInSeconds).clamp(0, 300);
     final hintBonus = _hintsRemaining * 50;
     _score += timeBonus + hintBonus;
+
+    // Record completed level score persistently in ScoreManager
+    await ScoreManager().recordLevelCompletion(
+      levelId: _currentLevel.id,
+      levelScore: _score,
+      wordsSolvedCount: _targetWords.length,
+    );
 
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
@@ -371,7 +382,8 @@ class _GameScreenState extends State<GameScreen>
         barrierDismissible: false,
         builder: (context) => VictoryDialog(
           level: _currentLevel,
-          score: _score,
+          levelScore: _score,
+          totalScore: ScoreManager().totalScore,
           timeInSeconds: _timeInSeconds,
           onNextLevel: () {
             Navigator.pop(context);
@@ -409,6 +421,7 @@ class _GameScreenState extends State<GameScreen>
   Widget build(BuildContext context) {
     final int remainingLetters = _allTiles.where((t) => !t.isUsed).length;
     final currentWordText = _selectedTiles.map((t) => t.letter).join();
+    final accumulatedTotal = ScoreManager().totalScore + _score;
 
     return Scaffold(
       backgroundColor: const Color(0xFF10002B),
@@ -544,13 +557,26 @@ class _GameScreenState extends State<GameScreen>
                           ),
                         ],
                       ),
-                      Text(
-                        'Score: $_score',
-                        style: const TextStyle(
-                          color: Color(0xFFFFD700),
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Level: $_score pts',
+                            style: const TextStyle(
+                              color: Color(0xFFFFD700),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Total: $accumulatedTotal pts',
+                            style: const TextStyle(
+                              color: Color(0xFF74C69D),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
