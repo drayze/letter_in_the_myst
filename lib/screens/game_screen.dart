@@ -106,24 +106,8 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build letter tiles from target words
-    _allTiles = [];
-    int tileCounter = 0;
-
-    for (int wordIdx = 0; wordIdx < level.words.length; wordIdx++) {
-      final word = level.words[wordIdx];
-      for (int charIdx = 0; charIdx < word.length; charIdx++) {
-        _allTiles.add(
-          LetterTile(
-            id: 'tile_${tileCounter++}_${word[charIdx]}',
-            letter: word[charIdx],
-          ),
-        );
-      }
-    }
-
-    // Shuffle tiles on circular wheel
-    _allTiles.shuffle(Random());
+    // 2. Build letter tiles keeping letters of each word contiguous and interwoven
+    _allTiles = _buildContiguousWordTiles(_targetWords);
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -135,6 +119,32 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
+  List<LetterTile> _buildContiguousWordTiles(List<TargetWord> targetWords) {
+    final List<LetterTile> result = [];
+    int tileCounter = 0;
+
+    final unsolved = targetWords.where((w) => !w.isSolved).toList();
+    unsolved.shuffle(Random());
+
+    for (var target in unsolved) {
+      final String word = target.word;
+      // 50% chance to reverse letter direction for interweaving mix
+      final chars = Random().nextBool()
+          ? word.split('')
+          : word.split('').reversed.toList();
+
+      for (int charIdx = 0; charIdx < chars.length; charIdx++) {
+        result.add(
+          LetterTile(
+            id: 'tile_${tileCounter++}_${chars[charIdx]}',
+            letter: chars[charIdx],
+          ),
+        );
+      }
+    }
+    return result;
+  }
+
   void _shuffleWheel() {
     setState(() {
       for (var t in _selectedTiles) {
@@ -142,17 +152,17 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
-      final unused = _allTiles.where((t) => !t.isUsed).toList();
-      unused.shuffle(Random());
+      // Re-mix remaining unsolved words maintaining letter contiguity
+      final reorderedTiles = _buildContiguousWordTiles(_targetWords);
 
-      int unusedIdx = 0;
+      int newIdx = 0;
       for (int i = 0; i < _allTiles.length; i++) {
-        if (!_allTiles[i].isUsed) {
-          _allTiles[i] = unused[unusedIdx++];
+        if (!_allTiles[i].isUsed && newIdx < reorderedTiles.length) {
+          _allTiles[i] = reorderedTiles[newIdx++];
         }
       }
 
-      _feedbackMessage = 'Wheel shuffled!';
+      _feedbackMessage = 'Wheel re-mixed!';
     });
   }
 
