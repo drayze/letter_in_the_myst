@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class CauldronFrameWidget extends StatelessWidget {
@@ -10,183 +11,229 @@ class CauldronFrameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: 1.0, // Ensures a perfectly round circular cauldron!
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  // 1. Fiery Orangish-Red Glow Underneath Round Cauldron Base
-                  Positioned(
-                    bottom: -16,
-                    left: 40,
-                    right: 40,
-                    height: 38,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          // Deep Red Core Glow
-                          BoxShadow(
-                            color: const Color(0xFFFF2A00).withAlpha(250),
-                            blurRadius: 32,
-                            spreadRadius: 10,
-                          ),
-                          // Bright Flame Orange Spread Glow
-                          BoxShadow(
-                            color: const Color(0xFFFF6D00).withAlpha(220),
-                            blurRadius: 45,
-                            spreadRadius: 16,
-                          ),
-                          // Amber Fire Aura
-                          BoxShadow(
-                            color: const Color(0xFFFFAB00).withAlpha(160),
-                            blurRadius: 60,
-                            spreadRadius: 24,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double size = min(constraints.maxWidth, constraints.maxHeight);
+        final double cauldronW = size;
+        final double cauldronH = size;
 
-                  // 2. Left Cauldron Side Handle
-                  Positioned(
-                    left: -14,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: Container(
-                        width: 28,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: const Color(0xFF333333),
-                            width: 5.0,
-                          ),
-                        ),
-                      ),
-                    ),
+        return Center(
+          child: SizedBox(
+            width: cauldronW,
+            height: cauldronH,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                // 1. Soft Fire Glow Wrapping 60% of the Cauldron (Layer 0: Behind Cauldron)
+                Positioned(
+                  bottom: -15,
+                  width: cauldronW * 1.55, // Wraps around cauldron sides!
+                  height: cauldronH * 0.88, // Wraps around lower 60% of cauldron height!
+                  child: CustomPaint(
+                    painter: CauldronFireGlowPainter(),
                   ),
+                ),
 
-                  // 3. Right Cauldron Side Handle
-                  Positioned(
-                    right: -14,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: Container(
-                        width: 28,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: const Color(0xFF333333),
-                            width: 5.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // 4. Black Round Cast-Iron Cauldron Pot
-                  Container(
+                // 2. Left Cauldron Side Handle
+                Positioned(
+                  left: -12,
+                  top: cauldronH * 0.40,
+                  child: Container(
+                    width: 24,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF121212),
-                      shape: BoxShape.circle, // 100% Round Cauldron!
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF3A3A3A),
+                        color: const Color(0xFF333333),
                         width: 4.5,
                       ),
-                      gradient: const RadialGradient(
-                        center: Alignment(-0.2, -0.3),
-                        radius: 0.95,
-                        colors: [
-                          Color(0xFF2E2E2E), // Metallic specular highlight
-                          Color(0xFF1C1C1C),
-                          Color(0xFF0A0A0A), // Deep black cauldron belly
-                        ],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(220),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
                     ),
-                    child: ClipOval(
-                      child: Stack(
-                        children: [
-                          // Dark Bubbling Magic Brew Interior
-                          Container(
-                            decoration: const BoxDecoration(
-                              gradient: RadialGradient(
-                                center: Alignment.center,
-                                radius: 0.85,
-                                colors: [
-                                  Color(0xFF3A0066), // Magic brew core
-                                  Color(0xFF20003B),
-                                  Color(0xFF0D001A), // Dark brew edge
-                                ],
-                              ),
-                            ),
-                          ),
+                  ),
+                ),
 
-                          // Top Metallic Rim Specular Reflection Arc
-                          Positioned(
-                            top: 8,
-                            left: 30,
-                            right: 30,
-                            height: 12,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(35),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-
-                          // Cauldron Interior Contents (Letter & Empty Bubbles)
-                          Positioned.fill(child: child),
-                        ],
+                // 3. Right Cauldron Side Handle
+                Positioned(
+                  right: -12,
+                  top: cauldronH * 0.40,
+                  child: Container(
+                    width: 24,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF333333),
+                        width: 4.5,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                // 4. Black Round Cast-Iron Cauldron Pot
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF121212),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFF3A3A3A),
+                      width: 4.0,
+                    ),
+                    gradient: const RadialGradient(
+                      center: Alignment(-0.2, -0.3),
+                      radius: 0.95,
+                      colors: [
+                        Color(0xFF2C2C2C), // Specular rim highlight
+                        Color(0xFF181818),
+                        Color(0xFF0A0A0A), // Deep black belly
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(220),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Stack(
+                      children: [
+                        // Dark Bubbling Magic Brew Interior
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: RadialGradient(
+                              center: Alignment.center,
+                              radius: 0.85,
+                              colors: [
+                                Color(0xFF3A0066), // Magic brew core
+                                Color(0xFF20003B),
+                                Color(0xFF0D001A), // Dark brew edge
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Top Metallic Specular Rim Arc
+                        Positioned(
+                          top: 10,
+                          left: 35,
+                          right: 35,
+                          height: 10,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(30),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+
+                        // Cauldron Play Area (Letter Wheel & Lines)
+                        Positioned.fill(child: child),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-
-        const SizedBox(height: 6),
-
-        // Fire Pit Base Embers
-        Container(
-          height: 10,
-          margin: const EdgeInsets.symmetric(horizontal: 50),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF3D00).withAlpha(200),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFF6D00).withAlpha(240),
-                blurRadius: 16,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
+}
+
+/// Paints soft fire glow wrapping around ~60% of the cauldron pot
+class CauldronFireGlowPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height * 0.58);
+
+    final glowRadiusX = size.width * 0.48;
+    final glowRadiusY = size.height * 0.46;
+
+    // 1. Broad Outer Ambient Fire Glow (Wrapping 60% of Cauldron)
+    final outerAuraRect = Rect.fromCenter(
+      center: Offset(center.dx, center.dy - 8),
+      width: glowRadiusX * 2.1,
+      height: glowRadiusY * 2.1,
+    );
+
+    final Paint outerAuraPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFF3D00).withAlpha(210), // Deep red-orange glow
+          const Color(0xFFFF6D00).withAlpha(150), // Warm flame orange
+          const Color(0xFFD50000).withAlpha(80),  // Crimson aura edge
+          const Color(0xFF000000).withAlpha(0),   // 100% transparent fade!
+        ],
+        stops: const [0.0, 0.48, 0.78, 1.0],
+      ).createShader(outerAuraRect);
+
+    canvas.drawOval(outerAuraRect, outerAuraPaint);
+
+    // 2. Inner Hot Fire Glow Body
+    final innerGlowRect = Rect.fromCenter(
+      center: center,
+      width: glowRadiusX * 1.7,
+      height: glowRadiusY * 1.7,
+    );
+
+    final Paint innerGlowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFF9C4), // Hot white-yellow core
+          const Color(0xFFFFD600), // Intense golden yellow
+          const Color(0xFFFF6D00), // Blazing orange
+          const Color(0xFFFF3D00).withAlpha(190),
+          const Color(0xFF000000).withAlpha(0),
+        ],
+        stops: const [0.0, 0.25, 0.55, 0.82, 1.0],
+      ).createShader(innerGlowRect);
+
+    canvas.drawOval(innerGlowRect, innerGlowPaint);
+
+    // 3. Bright White-Hot Center Spot
+    final coreSpotRect = Rect.fromCenter(
+      center: Offset(center.dx, center.dy + 4),
+      width: glowRadiusX * 1.0,
+      height: glowRadiusY * 0.65,
+    );
+
+    final Paint coreSpotPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withAlpha(245),
+          const Color(0xFFFFE082).withAlpha(200),
+          const Color(0xFFFF6D00).withAlpha(0),
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(coreSpotRect);
+
+    canvas.drawOval(coreSpotRect, coreSpotPaint);
+
+    // 4. Rising Spark / Ember Particles floating around 60% of cauldron sides
+    final rand = Random(42);
+    final Paint emberPaint = Paint()..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 35; i++) {
+      final angle = rand.nextDouble() * pi * 2;
+      final dist = rand.nextDouble() * glowRadiusX * 0.90;
+      final emberX = center.dx + cos(angle) * dist;
+      final emberY = center.dy - rand.nextDouble() * size.height * 0.65;
+      final emberRadius = 1.5 + rand.nextDouble() * 3.0;
+
+      emberPaint.color = Color.lerp(
+        const Color(0xFFFFD600),
+        const Color(0xFFFF3D00),
+        rand.nextDouble(),
+      )!.withAlpha((180 + rand.nextInt(75)));
+
+      canvas.drawCircle(Offset(emberX, emberY), emberRadius, emberPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
