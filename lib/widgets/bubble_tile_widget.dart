@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/empty_bubble.dart';
 import '../models/letter_tile.dart';
 
-/// Renders a Letter Bubble floating in the cauldron
+/// Renders a Bubble floating in the cauldron (with or without a letter inside)
 class LetterBubbleWidget extends StatelessWidget {
   final LetterTile tile;
   final double size;
@@ -115,77 +114,26 @@ class LetterBubbleWidget extends StatelessWidget {
               ),
             ),
 
-            // Letter Text
-            Center(
-              child: Text(
-                tile.letter,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: size * 0.46,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: borderColor.withAlpha(160),
-                      blurRadius: 6,
-                    ),
-                  ],
+            // Letter Text (only rendered if tile has a letter)
+            if (tile.letter.isNotEmpty)
+              Center(
+                child: Text(
+                  tile.letter,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: size * 0.46,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        color: borderColor.withAlpha(160),
+                        blurRadius: 6,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Renders an Empty Bubble floating in the cauldron
-class EmptyBubbleWidget extends StatelessWidget {
-  final EmptyBubbleData data;
-
-  const EmptyBubbleWidget({
-    super.key,
-    required this.data,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: data.size,
-      height: data.size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: data.bubbleColor.withAlpha((data.opacity * 100).toInt()),
-        border: Border.all(
-          color: data.bubbleColor.withAlpha((data.opacity * 200).toInt()),
-          width: 1.0,
-        ),
-        gradient: RadialGradient(
-          center: const Alignment(-0.3, -0.4),
-          radius: 0.85,
-          colors: [
-            Colors.white.withAlpha((data.opacity * 180).toInt()),
-            data.bubbleColor.withAlpha((data.opacity * 80).toInt()),
-            Colors.transparent,
-          ],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Specular Reflection Highlight
-          Positioned(
-            top: data.size * 0.14,
-            left: data.size * 0.16,
-            child: Container(
-              width: data.size * 0.25,
-              height: data.size * 0.15,
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha((data.opacity * 220).toInt()),
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

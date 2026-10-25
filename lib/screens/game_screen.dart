@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
-import '../models/empty_bubble.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
 import '../services/score_manager.dart';
@@ -28,7 +27,6 @@ class _GameScreenState extends State<GameScreen>
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
-  late List<EmptyBubbleData> _emptyBubbles;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -108,9 +106,8 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build letter bubbles & empty bubbles
+    // 2. Build letter tiles keeping letters of each word strictly contiguous
     _allTiles = _buildContiguousWordTiles(_targetWords);
-    _emptyBubbles = EmptyBubbleData.generateRandomList(18);
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -129,12 +126,18 @@ class _GameScreenState extends State<GameScreen>
     final unsolved = targetWords.where((w) => !w.isSolved).toList();
     unsolved.shuffle(Random());
 
-    for (var target in unsolved) {
+    final rand = Random();
+
+    for (int i = 0; i < unsolved.length; i++) {
+      final target = unsolved[i];
       final String word = target.word;
-      final chars = Random().nextBool()
+
+      // 50% chance to reverse letter flow direction
+      final chars = rand.nextBool()
           ? word.split('')
           : word.split('').reversed.toList();
 
+      // Add all letters of this word sequentially (strictly contiguous!)
       for (int charIdx = 0; charIdx < chars.length; charIdx++) {
         result.add(
           LetterTile(
@@ -143,7 +146,16 @@ class _GameScreenState extends State<GameScreen>
           ),
         );
       }
+
+      // Intersperse 1 empty bubble between words
+      result.add(
+        LetterTile(
+          id: 'empty_bubble_${tileCounter++}',
+          letter: '', // Empty letter bubble!
+        ),
+      );
     }
+
     return result;
   }
 
@@ -155,7 +167,6 @@ class _GameScreenState extends State<GameScreen>
       _selectedTiles.clear();
 
       final reorderedTiles = _buildContiguousWordTiles(_targetWords);
-      _emptyBubbles = EmptyBubbleData.generateRandomList(18);
 
       int newIdx = 0;
       for (int i = 0; i < _allTiles.length; i++) {
@@ -196,7 +207,10 @@ class _GameScreenState extends State<GameScreen>
         }
       }
 
-      if (touchedTile != null && !touchedTile.isUsed) {
+      // Ignore empty bubbles when building words
+      if (touchedTile != null &&
+          !touchedTile.isUsed &&
+          touchedTile.letter.isNotEmpty) {
         if (_selectedTiles.isEmpty) {
           _selectedTiles.add(touchedTile);
           touchedTile.isSelected = true;
@@ -426,7 +440,8 @@ class _GameScreenState extends State<GameScreen>
 
   @override
   Widget build(BuildContext context) {
-    final int remainingLetters = _allTiles.where((t) => !t.isUsed).length;
+    final int remainingLetters =
+        _allTiles.where((t) => !t.isUsed && t.letter.isNotEmpty).length;
     final currentWordText = _selectedTiles.map((t) => t.letter).join();
     final accumulatedTotal = ScoreManager().totalScore + _score;
 
@@ -638,7 +653,7 @@ class _GameScreenState extends State<GameScreen>
 
                 const SizedBox(height: 4),
 
-                // Black Cauldron Board with Orangish-Red Glow Underneath
+                // Cauldron Board Area
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(
@@ -714,18 +729,17 @@ class _GameScreenState extends State<GameScreen>
                               child: Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  // Empty Decorative Bubbles floating in cauldron brew
-                                  ..._emptyBubbles.map((eb) {
-                                    return Positioned(
-                                      left: eb.relX * _boardWidth -
-                                          (eb.size / 2),
-                                      top: eb.relY * _boardHeight -
-                                          (eb.size / 2),
-                                      child: EmptyBubbleWidget(data: eb),
-                                    );
-                                  }),
+                                  // Orbit Ring Line Background
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: OrbitRingPainter(
+                                        center: center,
+                                        radius: minDim * 0.36,
+                                      ),
+                                    ),
+                                  ),
 
-                                  // Glowing Potion Drag Line Painter
+                                  // Glowing Drag Line Painter
                                   Positioned.fill(
                                     child: CustomPaint(
                                       painter: WordLinePainter(
@@ -737,7 +751,7 @@ class _GameScreenState extends State<GameScreen>
                                     ),
                                   ),
 
-                                  // Letter Bubbles
+                                  // Bubbles (Letter Bubbles & Empty Bubbles!)
                                   ..._allTiles
                                       .where((t) => !t.isUsed)
                                       .map((tile) {
@@ -780,5 +794,27 @@ class _GameScreenState extends State<GameScreen>
         ),
       ),
     );
+  }
+}
+
+class OrbitRingPainter extends CustomPainter {
+  final Offset center;
+  final double radius;
+
+  OrbitRingPainter({required this.center, required this.radius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF3C096C).withAlpha(120)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant OrbitRingPainter oldDelegate) {
+    return oldDelegate.center != center || oldDelegate.radius != radius;
   }
 }
