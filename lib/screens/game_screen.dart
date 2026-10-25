@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
+import '../models/empty_bubble.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
 import '../services/score_manager.dart';
+import '../widgets/bubble_tile_widget.dart';
+import '../widgets/cauldron_frame_widget.dart';
 import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
-import '../widgets/letter_tile_widget.dart';
 import '../widgets/victory_dialog.dart';
 import '../widgets/word_line_painter.dart';
 import '../widgets/word_slot_widget.dart';
@@ -26,6 +28,7 @@ class _GameScreenState extends State<GameScreen>
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
+  late List<EmptyBubbleData> _emptyBubbles;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -98,7 +101,6 @@ class _GameScreenState extends State<GameScreen>
     // 1. Target Words
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
 
-    // Create slot keys for character slots
     for (int wIdx = 0; wIdx < level.words.length; wIdx++) {
       final word = level.words[wIdx];
       for (int cIdx = 0; cIdx < word.length; cIdx++) {
@@ -106,8 +108,9 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build letter tiles keeping letters of each word contiguous and interwoven
+    // 2. Build letter bubbles & empty bubbles
     _allTiles = _buildContiguousWordTiles(_targetWords);
+    _emptyBubbles = EmptyBubbleData.generateRandomList(18);
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -128,7 +131,6 @@ class _GameScreenState extends State<GameScreen>
 
     for (var target in unsolved) {
       final String word = target.word;
-      // 50% chance to reverse letter direction for interweaving mix
       final chars = Random().nextBool()
           ? word.split('')
           : word.split('').reversed.toList();
@@ -152,8 +154,8 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
-      // Re-mix remaining unsolved words maintaining letter contiguity
       final reorderedTiles = _buildContiguousWordTiles(_targetWords);
+      _emptyBubbles = EmptyBubbleData.generateRandomList(18);
 
       int newIdx = 0;
       for (int i = 0; i < _allTiles.length; i++) {
@@ -162,7 +164,7 @@ class _GameScreenState extends State<GameScreen>
         }
       }
 
-      _feedbackMessage = 'Wheel re-mixed!';
+      _feedbackMessage = 'Cauldron stirred!';
     });
   }
 
@@ -200,7 +202,6 @@ class _GameScreenState extends State<GameScreen>
           touchedTile.isSelected = true;
           _feedbackMessage = null;
         } else {
-          // Backtracking
           if (_selectedTiles.length > 1 &&
               _selectedTiles[_selectedTiles.length - 2] == touchedTile) {
             final removed = _selectedTiles.removeLast();
@@ -231,7 +232,6 @@ class _GameScreenState extends State<GameScreen>
       final matchedWord = _targetWords[matchedWordIdx];
       final color = _linePalette[_solvedLines.length % _linePalette.length];
 
-      // Prepare Flying Tile Overlay Animations
       _activeFlyingTiles.clear();
 
       for (int i = 0; i < _selectedTiles.length; i++) {
@@ -248,7 +248,6 @@ class _GameScreenState extends State<GameScreen>
           ),
         );
 
-        // Mark tile as used so it disappears from scramble wheel
         tile.isUsed = true;
         tile.isSelected = false;
         tile.solvedColor = color;
@@ -259,7 +258,6 @@ class _GameScreenState extends State<GameScreen>
       _selectedTiles.clear();
       _currentTouchPoint = null;
 
-      // Launch Flying Animation
       _flightController.forward(from: 0.0).then((_) {
         setState(() {
           matchedWord.isSolved = true;
@@ -378,7 +376,6 @@ class _GameScreenState extends State<GameScreen>
     final hintBonus = _hintsRemaining * 50;
     _score += timeBonus + hintBonus;
 
-    // Record completed level score persistently in ScoreManager
     await ScoreManager().recordLevelCompletion(
       levelId: _currentLevel.id,
       levelScore: _score,
@@ -539,9 +536,9 @@ class _GameScreenState extends State<GameScreen>
                         children: [
                           IconButton(
                             onPressed: _shuffleWheel,
-                            icon: const Icon(Icons.shuffle_rounded,
-                                color: Color(0xFFE0AAFF), size: 18),
-                            tooltip: 'Shuffle Wheel',
+                            icon: const Icon(Icons.rotate_right_rounded,
+                                color: Color(0xFFE0AAFF), size: 20),
+                            tooltip: 'Stir Cauldron',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -641,127 +638,129 @@ class _GameScreenState extends State<GameScreen>
 
                 const SizedBox(height: 4),
 
-                // Interactive Circular Wheel Board Area
+                // Black Cauldron Board with Orangish-Red Glow Underneath
                 Expanded(
                   child: Container(
-                    key: _wheelKey,
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 6.0),
-                    padding: const EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF140032).withAlpha(200),
-                      borderRadius: BorderRadius.circular(24),
-                      border:
-                          Border.all(color: const Color(0xFF3C096C), width: 1.5),
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        _boardWidth = constraints.maxWidth;
-                        _boardHeight = constraints.maxHeight;
+                        horizontal: 14.0, vertical: 8.0),
+                    child: CauldronFrameWidget(
+                      child: Container(
+                        key: _wheelKey,
+                        padding: const EdgeInsets.all(8.0),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            _boardWidth = constraints.maxWidth;
+                            _boardHeight = constraints.maxHeight;
 
-                        final center =
-                            Offset(_boardWidth / 2, _boardHeight / 2);
-                        final minDim = min(_boardWidth, _boardHeight);
+                            final center =
+                                Offset(_boardWidth / 2, _boardHeight / 2);
+                            final minDim = min(_boardWidth, _boardHeight);
 
-                        _currentTileSize =
-                            (minDim * 0.16).clamp(42.0, 58.0);
+                            _currentTileSize =
+                                (minDim * 0.16).clamp(42.0, 58.0);
 
-                        // Calculate tile positions on circular wheel for active tiles
-                        final activeTiles =
-                            _allTiles.where((t) => !t.isUsed).toList();
-                        final totalActive = activeTiles.length;
+                            final activeTiles =
+                                _allTiles.where((t) => !t.isUsed).toList();
+                            final totalActive = activeTiles.length;
 
-                        if (totalActive <= 12) {
-                          final double radius = minDim * 0.36;
-                          for (int i = 0; i < totalActive; i++) {
-                            final angle =
-                                (2 * pi * i / totalActive) - (pi / 2);
-                            activeTiles[i].centerPosition = Offset(
-                              center.dx + radius * cos(angle),
-                              center.dy + radius * sin(angle),
-                            );
-                          }
-                        } else {
-                          final int outerCount = (totalActive * 0.65).ceil();
-                          final int innerCount = totalActive - outerCount;
-
-                          final double outerRadius = minDim * 0.38;
-                          final double innerRadius = minDim * 0.22;
-
-                          for (int i = 0; i < outerCount; i++) {
-                            final angle =
-                                (2 * pi * i / outerCount) - (pi / 2);
-                            activeTiles[i].centerPosition = Offset(
-                              center.dx + outerRadius * cos(angle),
-                              center.dy + outerRadius * sin(angle),
-                            );
-                          }
-
-                          for (int i = 0; i < innerCount; i++) {
-                            final angle = (2 * pi * i / innerCount) -
-                                (pi / 2) +
-                                (pi / innerCount);
-                            activeTiles[outerCount + i].centerPosition = Offset(
-                              center.dx + innerRadius * cos(angle),
-                              center.dy + innerRadius * sin(angle),
-                            );
-                          }
-                        }
-
-                        final dragPoints = _selectedTiles
-                            .map((t) => t.centerPosition ?? Offset.zero)
-                            .toList();
-
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onPanStart: _onPanStart,
-                          onPanUpdate: _onPanUpdate,
-                          onPanEnd: _onPanEnd,
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              // Orbit Ring Background
-                              Positioned.fill(
-                                child: CustomPaint(
-                                  painter: OrbitRingPainter(
-                                    center: center,
-                                    radius: minDim * 0.36,
-                                  ),
-                                ),
-                              ),
-
-                              // Glowing Drag Line Painter
-                              Positioned.fill(
-                                child: CustomPaint(
-                                  painter: WordLinePainter(
-                                    solvedLines: _solvedLines,
-                                    currentDragPoints: dragPoints,
-                                    currentTouchPoint: _currentTouchPoint,
-                                    activeColor: const Color(0xFF00F5D4),
-                                  ),
-                                ),
-                              ),
-
-                              // Circular Tiles
-                              ..._allTiles.where((t) => !t.isUsed).map((tile) {
-                                final pos = tile.centerPosition ?? center;
-                                final x = pos.dx - (_currentTileSize / 2);
-                                final y = pos.dy - (_currentTileSize / 2);
-
-                                return Positioned(
-                                  left: x,
-                                  top: y,
-                                  child: LetterTileWidget(
-                                    tile: tile,
-                                    size: _currentTileSize,
-                                    activeColor: const Color(0xFF00F5D4),
-                                  ),
+                            if (totalActive <= 12) {
+                              final double radius = minDim * 0.36;
+                              for (int i = 0; i < totalActive; i++) {
+                                final angle =
+                                    (2 * pi * i / totalActive) - (pi / 2);
+                                activeTiles[i].centerPosition = Offset(
+                                  center.dx + radius * cos(angle),
+                                  center.dy + radius * sin(angle),
                                 );
-                              }),
-                            ],
-                          ),
-                        );
-                      },
+                              }
+                            } else {
+                              final int outerCount =
+                                  (totalActive * 0.65).ceil();
+                              final int innerCount = totalActive - outerCount;
+
+                              final double outerRadius = minDim * 0.38;
+                              final double innerRadius = minDim * 0.22;
+
+                              for (int i = 0; i < outerCount; i++) {
+                                final angle =
+                                    (2 * pi * i / outerCount) - (pi / 2);
+                                activeTiles[i].centerPosition = Offset(
+                                  center.dx + outerRadius * cos(angle),
+                                  center.dy + outerRadius * sin(angle),
+                                );
+                              }
+
+                              for (int i = 0; i < innerCount; i++) {
+                                final angle = (2 * pi * i / innerCount) -
+                                    (pi / 2) +
+                                    (pi / innerCount);
+                                activeTiles[outerCount + i].centerPosition =
+                                    Offset(
+                                  center.dx + innerRadius * cos(angle),
+                                  center.dy + innerRadius * sin(angle),
+                                );
+                              }
+                            }
+
+                            final dragPoints = _selectedTiles
+                                .map((t) => t.centerPosition ?? Offset.zero)
+                                .toList();
+
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanStart: _onPanStart,
+                              onPanUpdate: _onPanUpdate,
+                              onPanEnd: _onPanEnd,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // Empty Decorative Bubbles floating in cauldron brew
+                                  ..._emptyBubbles.map((eb) {
+                                    return Positioned(
+                                      left: eb.relX * _boardWidth -
+                                          (eb.size / 2),
+                                      top: eb.relY * _boardHeight -
+                                          (eb.size / 2),
+                                      child: EmptyBubbleWidget(data: eb),
+                                    );
+                                  }),
+
+                                  // Glowing Potion Drag Line Painter
+                                  Positioned.fill(
+                                    child: CustomPaint(
+                                      painter: WordLinePainter(
+                                        solvedLines: _solvedLines,
+                                        currentDragPoints: dragPoints,
+                                        currentTouchPoint: _currentTouchPoint,
+                                        activeColor: const Color(0xFF00F5D4),
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Letter Bubbles
+                                  ..._allTiles
+                                      .where((t) => !t.isUsed)
+                                      .map((tile) {
+                                    final pos = tile.centerPosition ?? center;
+                                    final x = pos.dx - (_currentTileSize / 2);
+                                    final y = pos.dy - (_currentTileSize / 2);
+
+                                    return Positioned(
+                                      left: x,
+                                      top: y,
+                                      child: LetterBubbleWidget(
+                                        tile: tile,
+                                        size: _currentTileSize,
+                                        activeColor: const Color(0xFF00F5D4),
+                                      ),
+                                    );
+                                  }),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -781,27 +780,5 @@ class _GameScreenState extends State<GameScreen>
         ),
       ),
     );
-  }
-}
-
-class OrbitRingPainter extends CustomPainter {
-  final Offset center;
-  final double radius;
-
-  OrbitRingPainter({required this.center, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF3C096C).withAlpha(120)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.drawCircle(center, radius, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant OrbitRingPainter oldDelegate) {
-    return oldDelegate.center != center || oldDelegate.radius != radius;
   }
 }
