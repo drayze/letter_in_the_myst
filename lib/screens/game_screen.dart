@@ -25,6 +25,8 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
+  late List<TargetWord> _activeBoardWords;
+  late List<TargetWord> _wordQueue;
   late List<LetterTile> _allTiles;
   late List<List<LetterTile?>> _grid;
 
@@ -40,7 +42,7 @@ class _GameScreenState extends State<GameScreen>
 
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
-  double _currentTileSize = 50.0;
+  double _currentTileSize = 52.0;
 
   final List<LetterTile> _selectedTiles = [];
   final List<SolvedWordLine> _solvedLines = [];
@@ -99,7 +101,7 @@ class _GameScreenState extends State<GameScreen>
     _activeFlyingTiles.clear();
     _slotKeys.clear();
 
-    // 1. Target Words
+    // 1. Target Words & Word Queue setup
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
 
     for (int wIdx = 0; wIdx < level.words.length; wIdx++) {
@@ -109,7 +111,24 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build spacious 2D grid matrix with empty bubbles mixed in
+    _activeBoardWords = [];
+    _wordQueue = [];
+
+    // Fit words up to ~16 total letters on board; queue remaining words for dynamic replenishment
+    int accumulatedLetters = 0;
+    const maxActiveBoardLetters = 16;
+
+    for (var target in _targetWords) {
+      if (accumulatedLetters + target.word.length <= maxActiveBoardLetters ||
+          _activeBoardWords.isEmpty) {
+        _activeBoardWords.add(target);
+        accumulatedLetters += target.word.length;
+      } else {
+        _wordQueue.add(target);
+      }
+    }
+
+    // 2. Build spacious 2D grid matrix for active board words
     _buildSpaciousGrid();
 
     // Start Timer
@@ -123,11 +142,11 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _buildSpaciousGrid() {
-    final activeUnsolved = _targetWords.where((w) => !w.isSolved).toList();
+    final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
     final totalLettersNeeded =
         activeUnsolved.fold(0, (sum, w) => sum + w.word.length);
 
-    // Guarantee 6 to 10 extra empty bubbles in the grid
+    // Guarantee extra empty bubbles in grid for spacious presentation
     final totalCapacityNeeded = totalLettersNeeded + 6;
 
     if (totalCapacityNeeded <= 16) {
@@ -139,12 +158,9 @@ class _GameScreenState extends State<GameScreen>
     } else if (totalCapacityNeeded <= 25) {
       _rows = 5;
       _cols = 5;
-    } else if (totalCapacityNeeded <= 30) {
-      _rows = 6;
-      _cols = 5;
     } else {
       _rows = 6;
-      _cols = 6;
+      _cols = 5;
     }
 
     _grid = List.generate(_rows, (_) => List.generate(_cols, (_) => null));
@@ -231,6 +247,115 @@ class _GameScreenState extends State<GameScreen>
         }
       }
     }
+  }
+
+  void _replenishWordFromQueue() {
+    if (_wordQueue.isEmpty) return;
+
+    final TargetWord nextTarget = _wordQueue.removeAt(0);
+    _activeBoardWords.add(nextTarget);
+
+    final String word = nextTarget.word;
+    final rand = Random();
+
+    List<Tuple2>? path;
+    for (int attempt = 0; attempt < 50; attempt++) {
+      final startR = rand.nextInt(_rows);
+      final startC = rand.nextInt(_cols);
+      if (_isSlotOpenForReplenishment(startR, startC)) {
+        path = _findOpenReplenishmentPath(startR, startC, word.length);
+        if (path != null && path.length == word.length) break;
+      }
+    }
+
+    path ??= _findAllOpenReplenishmentSlots(word.length);
+
+    final chars = rand.nextBool()
+        ? word.split('')
+        : word.split('').reversed.toList();
+
+    int tileCounter = _allTiles.length;
+    for (int i = 0; i < path.length && i < chars.length; i++) {
+      final pt = path[i];
+      final r = pt.item1;
+      final c = pt.item2;
+
+      final tile = LetterTile(
+        id: 'tile_${tileCounter++}_${chars[i]}',
+        letter: chars[i],
+        row: r,
+        col: c,
+      );
+
+      _grid[r][c] = tile;
+      _allTiles.add(tile);
+    }
+
+    _feedbackMessage = '✨ Summoned "${nextTarget.word}" into the grid!';
+  }
+
+  bool _isSlotOpenForReplenishment(int r, int c) {
+    final existing = _grid[r][c];
+    return existing == null || existing.isUsed || existing.letter.isEmpty;
+  }
+
+  List<Tuple2>? _findOpenReplenishmentPath(int startR, int startC, int length) {
+    final List<Tuple2> path = [Tuple2(startR, startC)];
+    final Set<String> visited = {'$startR,$startC'};
+    final rand = Random();
+
+    final dirs = [
+      const Tuple2(-1, 0),
+      const Tuple2(1, 0),
+      const Tuple2(0, -1),
+      const Tuple2(0, 1),
+      const Tuple2(-1, -1),
+      const Tuple2(-1, 1),
+      const Tuple2(1, -1),
+      const Tuple2(1, 1),
+    ];
+
+    bool dfs(int currR, int currC) {
+      if (path.length == length) return true;
+
+      dirs.shuffle(rand);
+      for (var d in dirs) {
+        final nr = currR + d.item1;
+        final nc = currC + d.item2;
+
+        if (nr >= 0 &&
+            nr < _rows &&
+            nc >= 0 &&
+            nc < _cols &&
+            _isSlotOpenForReplenishment(nr, nc) &&
+            !visited.contains('$nr,$nc')) {
+          visited.add('$nr,$nc');
+          path.add(Tuple2(nr, nc));
+
+          if (dfs(nr, nc)) return true;
+
+          path.removeLast();
+          visited.remove('$nr,$nc');
+        }
+      }
+      return false;
+    }
+
+    if (dfs(startR, startC)) return path;
+    return null;
+  }
+
+  List<Tuple2> _findAllOpenReplenishmentSlots(int count) {
+    final List<Tuple2> result = [];
+    for (int r = 0; r < _rows; r++) {
+      for (int c = 0; c < _cols; c++) {
+        if (_isSlotOpenForReplenishment(r, c)) {
+          result.add(Tuple2(r, c));
+          if (result.length == count) return result;
+        }
+      }
+    }
+    return result;
   }
 
   List<Tuple2>? _findGridSnakePath(int startR, int startC, int length) {
@@ -408,6 +533,11 @@ class _GameScreenState extends State<GameScreen>
         setState(() {
           matchedWord.isSolved = true;
           _activeFlyingTiles.clear();
+
+          // Replenish next word from queue if available!
+          if (_wordQueue.isNotEmpty) {
+            _replenishWordFromQueue();
+          }
 
           if (_targetWords.every((w) => w.isSolved)) {
             _handleLevelCompleted();
@@ -636,15 +766,15 @@ class _GameScreenState extends State<GameScreen>
             // Layer 1: Main Game UI Column
             Column(
               children: [
-                // Target Secret Words Panel (Answer Tray - MAX 15% of screen height)
+                // Target Secret Words Panel (Answer Tray - MAX 28% of screen height)
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.15,
+                    maxHeight: MediaQuery.of(context).size.height * 0.28,
                   ),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 4.0, horizontal: 6.0),
+                        vertical: 6.0, horizontal: 6.0),
                     decoration: const BoxDecoration(
                       color: Color(0xFF190933),
                       borderRadius: BorderRadius.only(
@@ -679,13 +809,36 @@ class _GameScreenState extends State<GameScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Unsolved: $remainingLetters',
-                        style: const TextStyle(
-                          color: Color(0xFFE0AAFF),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            'Unsolved: $remainingLetters',
+                            style: const TextStyle(
+                              color: Color(0xFFE0AAFF),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (_wordQueue.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF5A189A).withAlpha(150),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'Queue: ${_wordQueue.length}',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFD700),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       Row(
                         children: [
