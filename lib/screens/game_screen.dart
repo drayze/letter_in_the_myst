@@ -504,30 +504,38 @@ class _GameScreenState extends State<GameScreen>
             // Layer 1: Main Game UI Column
             Column(
               children: [
-                // Target Secret Words Panel
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 8.0, horizontal: 6.0),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF190933),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
-                    ),
+                // Target Secret Words Panel (Answer Tray - MAX 28% of screen height)
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.28,
                   ),
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 2.0,
-                    runSpacing: 2.0,
-                    children: List.generate(_targetWords.length, (index) {
-                      return WordSlotWidget(
-                        wordIndex: index,
-                        targetWord: _targetWords[index],
-                        revealedIndices: _revealedIndices[index] ?? {},
-                        slotKeys: _slotKeys,
-                      );
-                    }),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 6.0, horizontal: 6.0),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF190933),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 2.0,
+                        runSpacing: 2.0,
+                        children: List.generate(_targetWords.length, (index) {
+                          return WordSlotWidget(
+                            wordIndex: index,
+                            targetWord: _targetWords[index],
+                            revealedIndices: _revealedIndices[index] ?? {},
+                            slotKeys: _slotKeys,
+                          );
+                        }),
+                      ),
+                    ),
                   ),
                 ),
 

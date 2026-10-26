@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/level_select_screen.dart';
-import 'services/score_manager.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await ScoreManager().init();
+void main() {
   runApp(const LettersInTheMystApp());
 }
 
