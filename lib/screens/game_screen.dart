@@ -5,6 +5,7 @@ import '../data/levels_data.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
 import '../services/score_manager.dart';
+import '../theme/themes.dart';
 import '../widgets/bubble_tile_widget.dart';
 import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
@@ -56,14 +57,7 @@ class _GameScreenState extends State<GameScreen>
   String? _feedbackMessage;
   bool _isLevelCompleted = false;
 
-  final List<Color> _linePalette = const [
-    Color(0xFF00F5D4), // Cyan
-    Color(0xFFFF007F), // Neon Pink
-    Color(0xFFFFB703), // Amber
-    Color(0xFF9D4EDD), // Purple
-    Color(0xFF74C69D), // Mint
-    Color(0xFF3A86FF), // Blue
-  ];
+  final List<Color> _linePalette = AppColors.linePalette;
 
   @override
   void initState() {
@@ -708,32 +702,28 @@ class _GameScreenState extends State<GameScreen>
     final accumulatedTotal = ScoreManager().totalScore + _score;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF190933),
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         title: Text(
           _currentLevel.name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
+          style: AppTextStyles.appBarTitle,
         ),
         actions: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             margin: const EdgeInsets.only(right: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF240046),
+              color: AppColors.containerDark,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF5A189A)),
+              border: Border.all(color: AppColors.purpleBorder),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.timer_outlined,
-                    color: Color(0xFFFFD700), size: 14),
+                    color: AppColors.goldAccent, size: 14),
                 const SizedBox(width: 4),
                 Text(
                   '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
@@ -754,7 +744,7 @@ class _GameScreenState extends State<GameScreen>
               );
             },
             icon: const Icon(Icons.help_outline_rounded,
-                color: Color(0xFFE0AAFF), size: 22),
+                color: AppColors.purpleLight, size: 22),
           ),
         ],
       ),
@@ -776,7 +766,7 @@ class _GameScreenState extends State<GameScreen>
                     padding: const EdgeInsets.symmetric(
                         vertical: 6.0, horizontal: 6.0),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF190933),
+                      color: AppColors.cardBackground,
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(16),
                         bottomRight: Radius.circular(16),
@@ -814,7 +804,7 @@ class _GameScreenState extends State<GameScreen>
                           Text(
                             'Unsolved: $remainingLetters',
                             style: const TextStyle(
-                              color: Color(0xFFE0AAFF),
+                              color: AppColors.purpleLight,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -825,13 +815,13 @@ class _GameScreenState extends State<GameScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF5A189A).withAlpha(150),
+                                color: AppColors.purpleBorder.withAlpha(150),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 'Queue: ${_wordQueue.length}',
                                 style: const TextStyle(
-                                  color: Color(0xFFFFD700),
+                                  color: AppColors.goldAccent,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -845,7 +835,7 @@ class _GameScreenState extends State<GameScreen>
                           IconButton(
                             onPressed: _shuffleWheel,
                             icon: const Icon(Icons.shuffle_rounded,
-                                color: Color(0xFFE0AAFF), size: 20),
+                                color: AppColors.purpleLight, size: 20),
                             tooltip: 'Rearrange Grid',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
@@ -857,9 +847,9 @@ class _GameScreenState extends State<GameScreen>
                                 size: 14),
                             label: Text('Hint ($_hintsRemaining)'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF7B2CBF),
+                              backgroundColor: AppColors.purpleAccent,
                               foregroundColor: Colors.white,
-                              disabledBackgroundColor: const Color(0xFF240046),
+                              disabledBackgroundColor: AppColors.containerDark,
                               disabledForegroundColor: Colors.white24,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10.0, vertical: 4.0),
@@ -878,7 +868,7 @@ class _GameScreenState extends State<GameScreen>
                           Text(
                             'Level: $_score pts',
                             style: const TextStyle(
-                              color: Color(0xFFFFD700),
+                              color: AppColors.goldAccent,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -886,7 +876,7 @@ class _GameScreenState extends State<GameScreen>
                           Text(
                             'Total: $accumulatedTotal pts',
                             style: const TextStyle(
-                              color: Color(0xFF74C69D),
+                              color: AppColors.mintAccent,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
@@ -909,23 +899,18 @@ class _GameScreenState extends State<GameScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 6.0),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00F5D4),
+                        color: AppColors.activeCyan,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00F5D4).withAlpha(140),
+                            color: AppColors.activeCyan.withAlpha(140),
                             blurRadius: 10,
                           )
                         ],
                       ),
                       child: Text(
                         currentWordText,
-                        style: const TextStyle(
-                          color: Color(0xFF081C15),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                        ),
+                        style: AppTextStyles.activeWordBanner,
                       ),
                     ),
                   ),
@@ -936,11 +921,7 @@ class _GameScreenState extends State<GameScreen>
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Text(
                       _feedbackMessage!,
-                      style: const TextStyle(
-                        color: Color(0xFFFF9E00),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppTextStyles.warningMessage,
                     ),
                   ),
 
@@ -953,14 +934,14 @@ class _GameScreenState extends State<GameScreen>
                     margin: const EdgeInsets.symmetric(
                         horizontal: 14.0, vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF140032).withAlpha(200),
+                      color: AppColors.boardBackground.withAlpha(200),
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                          color: const Color(0xFF5A189A).withAlpha(120),
+                          color: AppColors.purpleBorder.withAlpha(120),
                           width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3C096C).withAlpha(100),
+                          color: AppColors.darkPurpleBorder.withAlpha(100),
                           blurRadius: 20,
                         ),
                       ],
@@ -1011,7 +992,7 @@ class _GameScreenState extends State<GameScreen>
                                       solvedLines: _solvedLines,
                                       currentDragPoints: dragPoints,
                                       currentTouchPoint: _currentTouchPoint,
-                                      activeColor: const Color(0xFF00F5D4),
+                                      activeColor: AppColors.activeCyan,
                                     ),
                                   ),
                                 ),
@@ -1031,7 +1012,7 @@ class _GameScreenState extends State<GameScreen>
                                     child: LetterBubbleWidget(
                                       tile: tile,
                                       size: _currentTileSize,
-                                      activeColor: const Color(0xFF00F5D4),
+                                      activeColor: AppColors.activeCyan,
                                     ),
                                   );
                                 }),

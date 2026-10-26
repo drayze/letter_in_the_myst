@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/level_select_screen.dart';
 import 'services/score_manager.dart';
+import 'theme/themes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,19 +17,7 @@ class LettersInTheMystApp extends StatelessWidget {
     return MaterialApp(
       title: 'Letters in the Myst',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5A189A),
-          brightness: Brightness.dark,
-          surface: const Color(0xFF10002B),
-          primary: const Color(0xFFBF2C78),
-          secondary: const Color(0xFFE0AAFF),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF10002B),
-        fontFamily: 'Roboto',
-      ),
+      theme: AppTheme.darkTheme,
       home: const LevelSelectScreen(),
     );
   }

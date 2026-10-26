@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/level.dart';
 import '../services/score_manager.dart';
+import '../theme/themes.dart';
 import '../widgets/how_to_play_dialog.dart';
 import 'game_screen.dart';
 
@@ -38,21 +39,17 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     final completedCount = ScoreManager().completedLevelIds.length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF190933),
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 22),
+            Icon(Icons.auto_awesome, color: AppColors.goldAccent, size: 22),
             SizedBox(width: 8),
             Text(
               'Letters in the Myst',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
+              style: AppTextStyles.headerTitle,
             ),
           ],
         ),
@@ -64,7 +61,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                 builder: (context) => const HowToPlayDialog(),
               );
             },
-            icon: const Icon(Icons.help_outline_rounded, color: Color(0xFFE0AAFF)),
+            icon: const Icon(Icons.help_outline_rounded, color: AppColors.purpleLight),
             tooltip: 'How to play',
           ),
         ],
@@ -77,20 +74,10 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               margin: const EdgeInsets.all(16.0),
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3C096C), Color(0xFF5A189A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppGradients.headerBanner,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF7B2CBF)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF5A189A).withAlpha(120),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                border: Border.all(color: AppColors.purpleAccent),
+                boxShadow: AppShadows.bannerShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,22 +88,18 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFD700).withAlpha(50),
+                          color: AppColors.goldAccent.withAlpha(50),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFFD700)),
+                          border: Border.all(color: AppColors.goldAccent),
                         ),
                         child: Row(
                           children: [
                             const Icon(Icons.workspace_premium,
-                                color: Color(0xFFFFD700), size: 16),
+                                color: AppColors.goldAccent, size: 16),
                             const SizedBox(width: 4),
                             Text(
                               'TOTAL SCORE: $totalScore',
-                              style: const TextStyle(
-                                color: Color(0xFFFFD700),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppTextStyles.totalScoreBanner,
                             ),
                           ],
                         ),
@@ -126,17 +109,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF240046),
+                          color: AppColors.containerDark,
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF5A189A)),
+                          border: Border.all(color: AppColors.purpleBorder),
                         ),
                         child: Text(
                           'BEST: $highScore',
-                          style: const TextStyle(
-                            color: Color(0xFFE0AAFF),
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTextStyles.bestScoreBanner,
                         ),
                       ),
                     ],
@@ -157,11 +136,11 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       icon: const Icon(Icons.play_arrow_rounded, size: 22),
                       label: const Text(
                         'PLAY RANDOM MYST PUZZLE',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: AppTextStyles.buttonBold,
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF74C69D),
-                        foregroundColor: const Color(0xFF081C15),
+                        backgroundColor: AppColors.mintAccent,
+                        foregroundColor: AppColors.greenDarkText,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -181,12 +160,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
               child: Text(
                 'Story Chapters',
-                style: TextStyle(
-                  color: Color(0xFFE0AAFF),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
+                style: AppTextStyles.sectionTitle,
               ),
             ),
           ),
@@ -213,20 +187,20 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: isCompleted
-                            ? const Color(0xFF1B4332)
-                            : const Color(0xFF190933),
+                            ? AppColors.greenSolvedBg
+                            : AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
                           color: isCompleted
-                              ? const Color(0xFF52B788)
-                              : const Color(0xFF3C096C),
+                              ? AppColors.greenSolved
+                              : AppColors.darkPurpleBorder,
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isCompleted
-                                ? const Color(0xFF52B788).withAlpha(60)
-                                : const Color(0xFF240046).withAlpha(100),
+                                ? AppColors.greenSolved.withAlpha(60)
+                                : AppColors.containerDark.withAlpha(100),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -243,22 +217,18 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF5A189A).withAlpha(100),
+                                  color: AppColors.purpleBorder.withAlpha(100),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   'Level ${level.id}',
-                                  style: const TextStyle(
-                                    color: Color(0xFFE0AAFF),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: AppTextStyles.levelCardNumber,
                                 ),
                               ),
                               if (isCompleted)
                                 const Icon(
                                   Icons.check_circle,
-                                  color: Color(0xFF74C69D),
+                                  color: AppColors.mintAccent,
                                   size: 20,
                                 )
                               else
@@ -273,11 +243,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                             level.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTextStyles.levelCardTitle,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -287,20 +253,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                   '${level.words.length} secret words',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white60,
-                                    fontSize: 12,
-                                  ),
+                                  style: AppTextStyles.levelCardSubtitle,
                                 ),
                               ),
                               if (bestScore > 0)
                                 Text(
                                   '$bestScore pts',
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFD700),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: AppTextStyles.levelCardScore,
                                 ),
                             ],
                           ),
@@ -325,16 +284,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white54, fontSize: 11),
+          style: AppTextStyles.statLabel,
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+          style: AppTextStyles.statValue,
         ),
       ],
     );

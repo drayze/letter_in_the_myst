@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
+import '../theme/themes.dart';
 
 /// Renders a Bubble floating in the cauldron (with or without a letter inside)
 class LetterBubbleWidget extends StatelessWidget {
@@ -11,7 +12,7 @@ class LetterBubbleWidget extends StatelessWidget {
     super.key,
     required this.tile,
     this.size = 52.0,
-    this.activeColor = const Color(0xFF00F5D4),
+    this.activeColor = AppColors.activeCyan,
   });
 
   @override
@@ -23,52 +24,28 @@ class LetterBubbleWidget extends StatelessWidget {
     double scale = 1.0;
 
     if (tile.isUsed) {
-      final color = tile.solvedColor ?? const Color(0xFF52B788);
+      final color = tile.solvedColor ?? AppColors.greenSolved;
       bubbleColor = color.withAlpha(90);
       borderColor = color;
       textColor = Colors.white;
-      boxShadow = [
-        BoxShadow(
-          color: color.withAlpha(140),
-          blurRadius: 10,
-          spreadRadius: 1,
-        ),
-      ];
+      boxShadow = AppShadows.glow(color, blurRadius: 10, spreadRadius: 1);
     } else if (tile.isSelected) {
       bubbleColor = activeColor.withAlpha(140);
       borderColor = activeColor;
       textColor = Colors.white;
       scale = 1.15;
-      boxShadow = [
-        BoxShadow(
-          color: activeColor.withAlpha(200),
-          blurRadius: 16,
-          spreadRadius: 3,
-        ),
-      ];
+      boxShadow = AppShadows.glow(activeColor, blurRadius: 16, spreadRadius: 3);
     } else if (tile.isHinted) {
-      bubbleColor = const Color(0xFF7A5C00);
-      borderColor = const Color(0xFFFFD700);
-      textColor = const Color(0xFFFFE57F);
+      bubbleColor = AppColors.bubbleGoldBg;
+      borderColor = AppColors.goldAccent;
+      textColor = AppColors.goldLight;
       scale = 1.08;
-      boxShadow = [
-        BoxShadow(
-          color: const Color(0xFFFFD700).withAlpha(200),
-          blurRadius: 14,
-          spreadRadius: 2,
-        ),
-      ];
+      boxShadow = AppShadows.glow(AppColors.goldAccent, blurRadius: 14, spreadRadius: 2);
     } else {
-      bubbleColor = const Color(0xFF381460).withAlpha(190);
-      borderColor = const Color(0xFF8A50C0);
-      textColor = const Color(0xFFE0AAFF);
-      boxShadow = [
-        BoxShadow(
-          color: const Color(0xFF8A50C0).withAlpha(110),
-          blurRadius: 8,
-          spreadRadius: 1,
-        ),
-      ];
+      bubbleColor = AppColors.usedTileBackground.withAlpha(190);
+      borderColor = AppColors.bubbleTileBorder;
+      textColor = AppColors.purpleLight;
+      boxShadow = AppShadows.glow(AppColors.bubbleTileBorder, blurRadius: 8, spreadRadius: 1);
     }
 
     return AnimatedScale(
@@ -87,16 +64,7 @@ class LetterBubbleWidget extends StatelessWidget {
             width: tile.isSelected || tile.isHinted ? 2.5 : 1.6,
           ),
           boxShadow: boxShadow,
-          gradient: RadialGradient(
-            center: const Alignment(-0.3, -0.4),
-            radius: 0.85,
-            colors: [
-              Color.alphaBlend(Colors.white.withAlpha(120), bubbleColor),
-              bubbleColor,
-              Color.alphaBlend(Colors.black.withAlpha(80), bubbleColor),
-            ],
-            stops: const [0.0, 0.65, 1.0],
-          ),
+          gradient: AppGradients.bubbleTile(bubbleColor),
         ),
         child: Stack(
           children: [

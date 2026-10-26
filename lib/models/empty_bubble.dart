@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../theme/themes.dart';
 
 class EmptyBubbleData {
   final double relX; // 0.1 to 0.9 inside cauldron
@@ -18,13 +19,7 @@ class EmptyBubbleData {
 
   static List<EmptyBubbleData> generateRandomList(int count) {
     final rand = Random();
-    final List<Color> colors = [
-      const Color(0xFF00F5D4),
-      const Color(0xFFE0AAFF),
-      const Color(0xFF74C69D),
-      const Color(0xFFFF9E00),
-      const Color(0xFF9D4EDD),
-    ];
+    final List<Color> colors = AppColors.bubbleColors;
 
     return List.generate(count, (i) {
       return EmptyBubbleData(

@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../theme/themes.dart';
 
 class CauldronFrameWidget extends StatelessWidget {
   final Widget child;
@@ -46,7 +47,7 @@ class CauldronFrameWidget extends StatelessWidget {
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF333333),
+                        color: AppColors.cauldronHandleBorder,
                         width: 4.5,
                       ),
                     ),
@@ -64,7 +65,7 @@ class CauldronFrameWidget extends StatelessWidget {
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFF333333),
+                        color: AppColors.cauldronHandleBorder,
                         width: 4.5,
                       ),
                     ),
@@ -74,28 +75,14 @@ class CauldronFrameWidget extends StatelessWidget {
                 // 4. Black Round Cast-Iron Cauldron Pot
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF121212),
+                    color: AppColors.cauldronDarkBase,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF3A3A3A),
+                      color: AppColors.cauldronPotBorder,
                       width: 4.0,
                     ),
-                    gradient: const RadialGradient(
-                      center: Alignment(-0.2, -0.3),
-                      radius: 0.95,
-                      colors: [
-                        Color(0xFF2C2C2C), // Specular rim highlight
-                        Color(0xFF181818),
-                        Color(0xFF0A0A0A), // Deep black belly
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(220),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    gradient: AppGradients.cauldronPot,
+                    boxShadow: AppShadows.cauldronShadow,
                   ),
                   child: ClipOval(
                     child: Stack(
@@ -103,15 +90,7 @@ class CauldronFrameWidget extends StatelessWidget {
                         // Dark Bubbling Magic Brew Interior
                         Container(
                           decoration: const BoxDecoration(
-                            gradient: RadialGradient(
-                              center: Alignment.center,
-                              radius: 0.85,
-                              colors: [
-                                Color(0xFF3A0066), // Magic brew core
-                                Color(0xFF20003B),
-                                Color(0xFF0D001A), // Dark brew edge
-                              ],
-                            ),
+                            gradient: AppGradients.magicBrew,
                           ),
                         ),
 
@@ -163,9 +142,9 @@ class CauldronFireGlowPainter extends CustomPainter {
     final Paint outerAuraPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFFF3D00).withAlpha(210), // Deep red-orange glow
-          const Color(0xFFFF6D00).withAlpha(150), // Warm flame orange
-          const Color(0xFFD50000).withAlpha(80),  // Crimson aura edge
+          AppColors.fireDeepRed.withAlpha(210), // Deep red-orange glow
+          AppColors.fireWarmFlame.withAlpha(150), // Warm flame orange
+          AppColors.fireCrimson.withAlpha(80),  // Crimson aura edge
           const Color(0xFF000000).withAlpha(0),   // 100% transparent fade!
         ],
         stops: const [0.0, 0.48, 0.78, 1.0],
@@ -183,10 +162,10 @@ class CauldronFireGlowPainter extends CustomPainter {
     final Paint innerGlowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFFFF9C4), // Hot white-yellow core
-          const Color(0xFFFFD600), // Intense golden yellow
-          const Color(0xFFFF6D00), // Blazing orange
-          const Color(0xFFFF3D00).withAlpha(190),
+          AppColors.fireHotCore, // Hot white-yellow core
+          AppColors.fireGoldenYellow, // Intense golden yellow
+          AppColors.fireWarmFlame, // Blazing orange
+          AppColors.fireDeepRed.withAlpha(190),
           const Color(0xFF000000).withAlpha(0),
         ],
         stops: const [0.0, 0.25, 0.55, 0.82, 1.0],
@@ -205,8 +184,8 @@ class CauldronFireGlowPainter extends CustomPainter {
       ..shader = RadialGradient(
         colors: [
           Colors.white.withAlpha(245),
-          const Color(0xFFFFE082).withAlpha(200),
-          const Color(0xFFFF6D00).withAlpha(0),
+          AppColors.fireLightYellow.withAlpha(200),
+          AppColors.fireWarmFlame.withAlpha(0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(coreSpotRect);
@@ -225,8 +204,8 @@ class CauldronFireGlowPainter extends CustomPainter {
       final emberRadius = 1.5 + rand.nextDouble() * 3.0;
 
       emberPaint.color = Color.lerp(
-        const Color(0xFFFFD600),
-        const Color(0xFFFF3D00),
+        AppColors.fireGoldenYellow,
+        AppColors.fireDeepRed,
         rand.nextDouble(),
       )!.withAlpha((180 + rand.nextInt(75)));
 

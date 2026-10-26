@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/level.dart';
+import '../theme/themes.dart';
 
 class VictoryDialog extends StatelessWidget {
   final Level level;
@@ -27,10 +28,10 @@ class VictoryDialog extends StatelessWidget {
         '${(timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(timeInSeconds % 60).toString().padLeft(2, '0')}';
 
     return Dialog(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.scaffoldBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF74C69D), width: 2),
+        side: const BorderSide(color: AppColors.mintAccent, width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(22.0),
@@ -41,19 +42,14 @@ class VictoryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF2D6A4F).withAlpha(100),
+                color: AppColors.greenSolvedDark.withAlpha(100),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF74C69D), width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF74C69D).withAlpha(150),
-                    blurRadius: 16,
-                  ),
-                ],
+                border: Border.all(color: AppColors.mintAccent, width: 2),
+                boxShadow: AppShadows.glow(AppColors.mintAccent, blurRadius: 16),
               ),
               child: const Icon(
                 Icons.auto_awesome,
-                color: Color(0xFF74C69D),
+                color: AppColors.mintAccent,
                 size: 36,
               ),
             ),
@@ -61,22 +57,13 @@ class VictoryDialog extends StatelessWidget {
 
             const Text(
               'MYST SOLVED!',
-              style: TextStyle(
-                color: Color(0xFFD8F3DC),
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
+              style: AppTextStyles.victoryTitle,
             ),
             const SizedBox(height: 4),
 
             Text(
               level.name,
-              style: const TextStyle(
-                color: Color(0xFFE0AAFF),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppTextStyles.victoryLevelName,
             ),
             const SizedBox(height: 14),
 
@@ -84,9 +71,9 @@ class VictoryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF190933),
+                color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF3C096C)),
+                border: Border.all(color: AppColors.darkPurpleBorder),
               ),
               child: Column(
                 children: [
@@ -99,7 +86,7 @@ class VictoryDialog extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
-                  const Divider(color: Color(0xFF240046), height: 18),
+                  const Divider(color: AppColors.containerDark, height: 18),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -121,8 +108,8 @@ class VictoryDialog extends StatelessWidget {
                   icon: const Icon(Icons.replay_rounded),
                   tooltip: 'Replay Level',
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF240046),
-                    foregroundColor: const Color(0xFFE0AAFF),
+                    backgroundColor: AppColors.containerDark,
+                    foregroundColor: AppColors.purpleLight,
                     padding: const EdgeInsets.all(10),
                   ),
                 ),
@@ -132,8 +119,8 @@ class VictoryDialog extends StatelessWidget {
                   icon: const Icon(Icons.grid_view_rounded),
                   tooltip: 'Level Select',
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF240046),
-                    foregroundColor: const Color(0xFFE0AAFF),
+                    backgroundColor: AppColors.containerDark,
+                    foregroundColor: AppColors.purpleLight,
                     padding: const EdgeInsets.all(10),
                   ),
                 ),
@@ -144,8 +131,8 @@ class VictoryDialog extends StatelessWidget {
                     icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                     label: const Text('NEXT LEVEL'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF74C69D),
-                      foregroundColor: const Color(0xFF081C15),
+                      backgroundColor: AppColors.mintAccent,
+                      foregroundColor: AppColors.greenDarkText,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -168,22 +155,18 @@ class VictoryDialog extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: const Color(0xFFFFD700)),
+            Icon(icon, size: 14, color: AppColors.goldAccent),
             const SizedBox(width: 3),
             Text(
               label,
-              style: const TextStyle(color: Colors.white54, fontSize: 11),
+              style: AppTextStyles.statLabel,
             ),
           ],
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: AppTextStyles.statValue,
         ),
       ],
     );

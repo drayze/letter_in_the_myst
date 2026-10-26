@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
+import '../theme/themes.dart';
 
 class LetterTileWidget extends StatelessWidget {
   final LetterTile tile;
@@ -10,7 +11,7 @@ class LetterTileWidget extends StatelessWidget {
     super.key,
     required this.tile,
     this.size = 54.0,
-    this.activeColor = const Color(0xFF00F5D4),
+    this.activeColor = AppColors.activeCyan,
   });
 
   @override
@@ -23,51 +24,33 @@ class LetterTileWidget extends StatelessWidget {
 
     if (tile.isUsed) {
       // Solved tile
-      final tileColor = tile.solvedColor ?? const Color(0xFF52B788);
+      final tileColor = tile.solvedColor ?? AppColors.greenSolved;
       bgColor = tileColor.withAlpha(80);
       borderColor = tileColor;
       textColor = Colors.white;
-      boxShadow = [
-        BoxShadow(
-          color: tileColor.withAlpha(120),
-          blurRadius: 10,
-          spreadRadius: 1,
-        ),
-      ];
+      boxShadow = AppShadows.glow(tileColor, blurRadius: 10, spreadRadius: 1);
     } else if (tile.isSelected) {
       // Currently being highlighted by finger trace line!
       bgColor = activeColor.withAlpha(100);
       borderColor = activeColor;
       textColor = Colors.white;
       scale = 1.12;
-      boxShadow = [
-        BoxShadow(
-          color: activeColor.withAlpha(180),
-          blurRadius: 14,
-          spreadRadius: 2,
-        ),
-      ];
+      boxShadow = AppShadows.glow(activeColor, blurRadius: 14, spreadRadius: 2);
     } else if (tile.isHinted) {
       // Hinted
-      bgColor = const Color(0xFF5C4000);
-      borderColor = const Color(0xFFFFD700);
-      textColor = const Color(0xFFFFE57F);
+      bgColor = AppColors.goldDarkBg;
+      borderColor = AppColors.goldAccent;
+      textColor = AppColors.goldLight;
       scale = 1.05;
-      boxShadow = [
-        BoxShadow(
-          color: const Color(0xFFFFD700).withAlpha(180),
-          blurRadius: 12,
-          spreadRadius: 2,
-        ),
-      ];
+      boxShadow = AppShadows.glow(AppColors.goldAccent, blurRadius: 12, spreadRadius: 2);
     } else {
       // Idle Jumble tile
-      bgColor = const Color(0xFF241442);
-      borderColor = const Color(0xFF5E548E);
-      textColor = const Color(0xFFE0AAFF);
+      bgColor = AppColors.idleTileBackground;
+      borderColor = AppColors.idleTileBorder;
+      textColor = AppColors.purpleLight;
       boxShadow = [
         BoxShadow(
-          color: const Color(0xFF3C096C).withAlpha(100),
+          color: AppColors.darkPurpleBorder.withAlpha(100),
           blurRadius: 6,
           offset: const Offset(0, 3),
         ),
@@ -90,14 +73,7 @@ class LetterTileWidget extends StatelessWidget {
             width: tile.isSelected || tile.isHinted ? 2.5 : 1.5,
           ),
           boxShadow: boxShadow,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              bgColor,
-              Color.alphaBlend(Colors.white.withAlpha(20), bgColor),
-            ],
-          ),
+          gradient: AppGradients.tileGradient(bgColor),
         ),
         child: Center(
           child: Text(

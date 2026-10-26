@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
+import '../theme/themes.dart';
 
 class WordLinePainter extends CustomPainter {
   final List<SolvedWordLine> solvedLines;
@@ -11,7 +12,7 @@ class WordLinePainter extends CustomPainter {
     required this.solvedLines,
     required this.currentDragPoints,
     this.currentTouchPoint,
-    this.activeColor = const Color(0xFF00F5D4),
+    this.activeColor = AppColors.activeCyan,
   });
 
   @override

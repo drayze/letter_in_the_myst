@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/themes.dart';
 
 class HowToPlayDialog extends StatelessWidget {
   const HowToPlayDialog({super.key});
@@ -6,10 +7,10 @@ class HowToPlayDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.scaffoldBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF7B2CBF), width: 1.5),
+        side: const BorderSide(color: AppColors.purpleAccent, width: 1.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -21,17 +22,13 @@ class HowToPlayDialog extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.auto_awesome,
-                  color: Color(0xFFFFD700),
+                  color: AppColors.goldAccent,
                   size: 28,
                 ),
                 const SizedBox(width: 10),
                 const Text(
                   'How To Play',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.dialogTitle,
                 ),
                 const Spacer(),
                 IconButton(
@@ -40,10 +37,10 @@ class HowToPlayDialog extends StatelessWidget {
                 )
               ],
             ),
-            const Divider(color: Color(0xFF3C096C), height: 24),
+            const Divider(color: AppColors.darkPurpleBorder, height: 24),
             _buildRuleItem(
               icon: Icons.gesture,
-              color: const Color(0xFF00F5D4),
+              color: AppColors.activeCyan,
               title: 'Trace Circular Wheel',
               description:
                   'Drag your finger across letters on the circular wheel. A glowing colored line will trace your word!',
@@ -51,7 +48,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.all_inclusive,
-              color: const Color(0xFFE0AAFF),
+              color: AppColors.purpleLight,
               title: '100% Target Letters',
               description:
                   'Every single letter on the wheel belongs to one of the secret words needed to solve the puzzle.',
@@ -59,7 +56,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.lightbulb,
-              color: const Color(0xFFFFD700),
+              color: AppColors.goldAccent,
               title: 'Need a Hint?',
               description:
                   'Tap the Hint button to reveal a letter slot in one of the hidden words.',
@@ -67,7 +64,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.workspace_premium,
-              color: const Color(0xFF74C69D),
+              color: AppColors.mintAccent,
               title: 'Complete the Myst',
               description:
                   'Solve all secret words to lock in glowing lines across the entire circular wheel!',
@@ -78,7 +75,7 @@ class HowToPlayDialog extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B2CBF),
+                  backgroundColor: AppColors.purpleAccent,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
