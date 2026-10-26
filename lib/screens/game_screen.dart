@@ -6,7 +6,6 @@ import '../models/letter_tile.dart';
 import '../models/level.dart';
 import '../services/score_manager.dart';
 import '../widgets/bubble_tile_widget.dart';
-import '../widgets/cauldron_frame_widget.dart';
 import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/victory_dialog.dart';
@@ -27,6 +26,10 @@ class _GameScreenState extends State<GameScreen>
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
+  late List<List<LetterTile?>> _stackedGrid;
+
+  int _rows = 5;
+  int _cols = 5;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -37,7 +40,7 @@ class _GameScreenState extends State<GameScreen>
 
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
-  double _currentTileSize = 52.0;
+  double _currentTileSize = 54.0;
 
   final List<LetterTile> _selectedTiles = [];
   final List<SolvedWordLine> _solvedLines = [];
@@ -106,8 +109,8 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build letter tiles keeping letters of each word strictly contiguous
-    _allTiles = _buildContiguousWordTiles(_targetWords);
+    // 2. Build stacked bubble grid with guaranteed empty bubbles
+    _buildStackedBubbleGrid();
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -119,43 +122,174 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
-  List<LetterTile> _buildContiguousWordTiles(List<TargetWord> targetWords) {
-    final List<LetterTile> result = [];
-    int tileCounter = 0;
+  void _buildStackedBubbleGrid() {
+    final activeUnsolved = _targetWords.where((w) => !w.isSolved).toList();
+    final totalLettersNeeded =
+        activeUnsolved.fold(0, (sum, w) => sum + w.word.length);
 
-    final unsolved = targetWords.where((w) => !w.isSolved).toList();
-    unsolved.shuffle(Random());
+    // Guarantee at least 6 to 10 extra empty bubbles in the stack
+    final totalCapacityNeeded = totalLettersNeeded + 6;
 
-    final rand = Random();
-
-    for (int i = 0; i < unsolved.length; i++) {
-      final target = unsolved[i];
-      final String word = target.word;
-
-      // 50% chance to reverse letter flow direction
-      final chars = rand.nextBool()
-          ? word.split('')
-          : word.split('').reversed.toList();
-
-      // Add all letters of this word sequentially (strictly contiguous!)
-      for (int charIdx = 0; charIdx < chars.length; charIdx++) {
-        result.add(
-          LetterTile(
-            id: 'tile_${tileCounter++}_${chars[charIdx]}',
-            letter: chars[charIdx],
-          ),
-        );
-      }
-
-      // Intersperse 1 empty bubble between words
-      result.add(
-        LetterTile(
-          id: 'empty_bubble_${tileCounter++}',
-          letter: '', // Empty letter bubble!
-        ),
-      );
+    if (totalCapacityNeeded <= 16) {
+      _rows = 4;
+      _cols = 4;
+    } else if (totalCapacityNeeded <= 20) {
+      _rows = 5;
+      _cols = 4;
+    } else if (totalCapacityNeeded <= 25) {
+      _rows = 5;
+      _cols = 5;
+    } else if (totalCapacityNeeded <= 30) {
+      _rows = 6;
+      _cols = 5;
+    } else {
+      _rows = 6;
+      _cols = 6;
     }
 
+    _stackedGrid =
+        List.generate(_rows, (_) => List.generate(_cols, (_) => null));
+    _allTiles = [];
+
+    int tileCounter = 0;
+    final rand = Random();
+
+    activeUnsolved.shuffle(rand);
+
+    // Place target words along contiguous adjacent slots in stacked grid
+    for (var target in activeUnsolved) {
+      final String word = target.word;
+      bool placed = false;
+
+      for (int attempt = 0; attempt < 100; attempt++) {
+        final startR = rand.nextInt(_rows);
+        final startC = rand.nextInt(_cols);
+
+        if (_stackedGrid[startR][startC] != null) continue;
+
+        final path = _findStackedSnakePath(startR, startC, word.length);
+        if (path != null && path.length == word.length) {
+          final chars = rand.nextBool()
+              ? word.split('')
+              : word.split('').reversed.toList();
+
+          for (int i = 0; i < chars.length; i++) {
+            final pt = path[i];
+            final tile = LetterTile(
+              id: 'tile_${tileCounter++}_${chars[i]}',
+              letter: chars[i],
+              row: pt.item1,
+              col: pt.item2,
+            );
+            _stackedGrid[pt.item1][pt.item2] = tile;
+            _allTiles.add(tile);
+          }
+          placed = true;
+          break;
+        }
+      }
+
+      if (!placed) {
+        // Fallback: Fill any open adjacent slots
+        for (int r = 0; r < _rows; r++) {
+          for (int c = 0; c < _cols; c++) {
+            if (_stackedGrid[r][c] == null) {
+              final path = _findOpenSlots(r, c, word.length);
+              for (int i = 0; i < path.length; i++) {
+                final pt = path[i];
+                if (i < word.length) {
+                  final tile = LetterTile(
+                    id: 'tile_${tileCounter++}_${word[i]}',
+                    letter: word[i],
+                    row: pt.item1,
+                    col: pt.item2,
+                  );
+                  _stackedGrid[pt.item1][pt.item2] = tile;
+                  _allTiles.add(tile);
+                }
+              }
+              placed = true;
+              break;
+            }
+          }
+          if (placed) break;
+        }
+      }
+    }
+
+    // Fill ALL remaining empty grid slots with matching empty bubbles!
+    for (int r = 0; r < _rows; r++) {
+      for (int c = 0; c < _cols; c++) {
+        if (_stackedGrid[r][c] == null) {
+          final tile = LetterTile(
+            id: 'empty_tile_${tileCounter++}',
+            letter: '', // Empty bubble matching letter bubble appearance!
+            row: r,
+            col: c,
+          );
+          _stackedGrid[r][c] = tile;
+          _allTiles.add(tile);
+        }
+      }
+    }
+  }
+
+  List<Tuple2>? _findStackedSnakePath(int startR, int startC, int length) {
+    final List<Tuple2> path = [Tuple2(startR, startC)];
+    final Set<String> visited = {'$startR,$startC'};
+    final rand = Random();
+
+    final dirs = [
+      const Tuple2(-1, 0),
+      const Tuple2(1, 0),
+      const Tuple2(0, -1),
+      const Tuple2(0, 1),
+      const Tuple2(-1, -1),
+      const Tuple2(-1, 1),
+      const Tuple2(1, -1),
+      const Tuple2(1, 1),
+    ];
+
+    bool dfs(int currR, int currC) {
+      if (path.length == length) return true;
+
+      dirs.shuffle(rand);
+      for (var d in dirs) {
+        final nr = currR + d.item1;
+        final nc = currC + d.item2;
+
+        if (nr >= 0 &&
+            nr < _rows &&
+            nc >= 0 &&
+            nc < _cols &&
+            _stackedGrid[nr][nc] == null &&
+            !visited.contains('$nr,$nc')) {
+          visited.add('$nr,$nc');
+          path.add(Tuple2(nr, nc));
+
+          if (dfs(nr, nc)) return true;
+
+          path.removeLast();
+          visited.remove('$nr,$nc');
+        }
+      }
+      return false;
+    }
+
+    if (dfs(startR, startC)) return path;
+    return null;
+  }
+
+  List<Tuple2> _findOpenSlots(int startR, int startC, int count) {
+    final List<Tuple2> result = [];
+    for (int r = 0; r < _rows; r++) {
+      for (int c = 0; c < _cols; c++) {
+        if (_stackedGrid[r][c] == null) {
+          result.add(Tuple2(r, c));
+          if (result.length == count) return result;
+        }
+      }
+    }
     return result;
   }
 
@@ -166,16 +300,9 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
-      final reorderedTiles = _buildContiguousWordTiles(_targetWords);
-
-      int newIdx = 0;
-      for (int i = 0; i < _allTiles.length; i++) {
-        if (!_allTiles[i].isUsed && newIdx < reorderedTiles.length) {
-          _allTiles[i] = reorderedTiles[newIdx++];
-        }
-      }
-
-      _feedbackMessage = 'Cauldron stirred!';
+      // Re-build stacked bubble grid occupying full space with empty bubbles
+      _buildStackedBubbleGrid();
+      _feedbackMessage = 'Bubbles restacked!';
     });
   }
 
@@ -195,7 +322,7 @@ class _GameScreenState extends State<GameScreen>
       _currentTouchPoint = localPos;
 
       LetterTile? touchedTile;
-      double minDistance = 38.0;
+      double minDistance = _currentTileSize * 0.85;
 
       for (var tile in _allTiles) {
         if (!tile.isUsed && tile.centerPosition != null) {
@@ -221,8 +348,15 @@ class _GameScreenState extends State<GameScreen>
             final removed = _selectedTiles.removeLast();
             removed.isSelected = false;
           } else if (!_selectedTiles.contains(touchedTile)) {
-            _selectedTiles.add(touchedTile);
-            touchedTile.isSelected = true;
+            // Check adjacency in stacked grid
+            final last = _selectedTiles.last;
+            final isAdjacent = (touchedTile.row - last.row).abs() <= 1 &&
+                (touchedTile.col - last.col).abs() <= 1;
+
+            if (isAdjacent) {
+              _selectedTiles.add(touchedTile);
+              touchedTile.isSelected = true;
+            }
           }
         }
       }
@@ -559,9 +693,9 @@ class _GameScreenState extends State<GameScreen>
                         children: [
                           IconButton(
                             onPressed: _shuffleWheel,
-                            icon: const Icon(Icons.rotate_right_rounded,
+                            icon: const Icon(Icons.shuffle_rounded,
                                 color: Color(0xFFE0AAFF), size: 20),
-                            tooltip: 'Stir Cauldron',
+                            tooltip: 'Restack Bubbles',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -661,127 +795,107 @@ class _GameScreenState extends State<GameScreen>
 
                 const SizedBox(height: 4),
 
-                // Cauldron Board Area
+                // Full-Space Stacked Bubble Board Area
                 Expanded(
                   child: Container(
+                    key: _wheelKey,
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 14.0, vertical: 8.0),
-                    child: CauldronFrameWidget(
-                      child: Container(
-                        key: _wheelKey,
-                        padding: const EdgeInsets.all(8.0),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            _boardWidth = constraints.maxWidth;
-                            _boardHeight = constraints.maxHeight;
+                        horizontal: 10.0, vertical: 6.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF140032).withAlpha(220),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: const Color(0xFF5A189A).withAlpha(140),
+                          width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF3C096C).withAlpha(120),
+                          blurRadius: 20,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          _boardWidth = constraints.maxWidth;
+                          _boardHeight = constraints.maxHeight;
 
-                            final center =
-                                Offset(_boardWidth / 2, _boardHeight / 2);
-                            final minDim = min(_boardWidth, _boardHeight);
+                          final cellWidth = _boardWidth / _cols;
+                          final cellHeight = _boardHeight / _rows;
 
-                            _currentTileSize =
-                                (minDim * 0.16).clamp(42.0, 58.0);
+                          // Tightly stacked bubble diameter filling the space
+                          _currentTileSize =
+                              min(cellWidth, cellHeight) * 0.88;
 
-                            final activeTiles =
-                                _allTiles.where((t) => !t.isUsed).toList();
-                            final totalActive = activeTiles.length;
+                          // Position stacked bubbles covering 100% of the board space
+                          for (int r = 0; r < _rows; r++) {
+                            for (int c = 0; c < _cols; c++) {
+                              final tile = _stackedGrid[r][c];
+                              if (tile != null) {
+                                // Stagger odd rows horizontally for a honeycomb stack effect
+                                final xOffset =
+                                    (r % 2 == 1) ? cellWidth * 0.25 : 0.0;
 
-                            if (totalActive <= 12) {
-                              final double radius = minDim * 0.36;
-                              for (int i = 0; i < totalActive; i++) {
-                                final angle =
-                                    (2 * pi * i / totalActive) - (pi / 2);
-                                activeTiles[i].centerPosition = Offset(
-                                  center.dx + radius * cos(angle),
-                                  center.dy + radius * sin(angle),
-                                );
-                              }
-                            } else {
-                              final int outerCount =
-                                  (totalActive * 0.65).ceil();
-                              final int innerCount = totalActive - outerCount;
+                                final cx = (c + 0.5) * cellWidth + xOffset;
+                                final cy = (r + 0.5) * cellHeight;
 
-                              final double outerRadius = minDim * 0.38;
-                              final double innerRadius = minDim * 0.22;
-
-                              for (int i = 0; i < outerCount; i++) {
-                                final angle =
-                                    (2 * pi * i / outerCount) - (pi / 2);
-                                activeTiles[i].centerPosition = Offset(
-                                  center.dx + outerRadius * cos(angle),
-                                  center.dy + outerRadius * sin(angle),
-                                );
-                              }
-
-                              for (int i = 0; i < innerCount; i++) {
-                                final angle = (2 * pi * i / innerCount) -
-                                    (pi / 2) +
-                                    (pi / innerCount);
-                                activeTiles[outerCount + i].centerPosition =
-                                    Offset(
-                                  center.dx + innerRadius * cos(angle),
-                                  center.dy + innerRadius * sin(angle),
+                                tile.centerPosition = Offset(
+                                  cx.clamp(_currentTileSize / 2,
+                                      _boardWidth - _currentTileSize / 2),
+                                  cy,
                                 );
                               }
                             }
+                          }
 
-                            final dragPoints = _selectedTiles
-                                .map((t) => t.centerPosition ?? Offset.zero)
-                                .toList();
+                          final dragPoints = _selectedTiles
+                              .map((t) => t.centerPosition ?? Offset.zero)
+                              .toList();
 
-                            return GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onPanStart: _onPanStart,
-                              onPanUpdate: _onPanUpdate,
-                              onPanEnd: _onPanEnd,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  // Orbit Ring Line Background
-                                  Positioned.fill(
-                                    child: CustomPaint(
-                                      painter: OrbitRingPainter(
-                                        center: center,
-                                        radius: minDim * 0.36,
-                                      ),
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onPanStart: _onPanStart,
+                            onPanUpdate: _onPanUpdate,
+                            onPanEnd: _onPanEnd,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Glowing Line Drag Painter
+                                Positioned.fill(
+                                  child: CustomPaint(
+                                    painter: WordLinePainter(
+                                      solvedLines: _solvedLines,
+                                      currentDragPoints: dragPoints,
+                                      currentTouchPoint: _currentTouchPoint,
+                                      activeColor: const Color(0xFF00F5D4),
                                     ),
                                   ),
+                                ),
 
-                                  // Glowing Drag Line Painter
-                                  Positioned.fill(
-                                    child: CustomPaint(
-                                      painter: WordLinePainter(
-                                        solvedLines: _solvedLines,
-                                        currentDragPoints: dragPoints,
-                                        currentTouchPoint: _currentTouchPoint,
-                                        activeColor: const Color(0xFF00F5D4),
-                                      ),
+                                // Full-Space Stacked Bubbles
+                                ..._allTiles
+                                    .where((t) => !t.isUsed)
+                                    .map((tile) {
+                                  final pos = tile.centerPosition ??
+                                      Offset(_boardWidth / 2, _boardHeight / 2);
+                                  final x = pos.dx - (_currentTileSize / 2);
+                                  final y = pos.dy - (_currentTileSize / 2);
+
+                                  return Positioned(
+                                    left: x,
+                                    top: y,
+                                    child: LetterBubbleWidget(
+                                      tile: tile,
+                                      size: _currentTileSize,
+                                      activeColor: const Color(0xFF00F5D4),
                                     ),
-                                  ),
-
-                                  // Bubbles (Letter Bubbles & Empty Bubbles!)
-                                  ..._allTiles
-                                      .where((t) => !t.isUsed)
-                                      .map((tile) {
-                                    final pos = tile.centerPosition ?? center;
-                                    final x = pos.dx - (_currentTileSize / 2);
-                                    final y = pos.dy - (_currentTileSize / 2);
-
-                                    return Positioned(
-                                      left: x,
-                                      top: y,
-                                      child: LetterBubbleWidget(
-                                        tile: tile,
-                                        size: _currentTileSize,
-                                        activeColor: const Color(0xFF00F5D4),
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                                  );
+                                }),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -805,24 +919,8 @@ class _GameScreenState extends State<GameScreen>
   }
 }
 
-class OrbitRingPainter extends CustomPainter {
-  final Offset center;
-  final double radius;
-
-  OrbitRingPainter({required this.center, required this.radius});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF3C096C).withAlpha(120)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    canvas.drawCircle(center, radius, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant OrbitRingPainter oldDelegate) {
-    return oldDelegate.center != center || oldDelegate.radius != radius;
-  }
+class Tuple2 {
+  final int item1;
+  final int item2;
+  const Tuple2(this.item1, this.item2);
 }
