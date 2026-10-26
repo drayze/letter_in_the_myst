@@ -5,8 +5,6 @@ import '../theme/themes.dart';
 class GuessTray extends StatelessWidget {
   final List<LetterTile> selectedTiles;
   final Function(LetterTile) onTileTap;
-  final VoidCallback onSubmit;
-  final VoidCallback onClear;
   final VoidCallback onShuffle;
   final VoidCallback onHint;
   final int hintsRemaining;
@@ -16,8 +14,6 @@ class GuessTray extends StatelessWidget {
     super.key,
     required this.selectedTiles,
     required this.onTileTap,
-    required this.onSubmit,
-    required this.onClear,
     required this.onShuffle,
     required this.onHint,
     required this.hintsRemaining,
@@ -118,34 +114,21 @@ class GuessTray extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Clear Button
-              IconButton.filledTonal(
-                onPressed: selectedTiles.isEmpty ? null : onClear,
-                icon: const Icon(Icons.backspace_outlined),
-                tooltip: 'Clear selection',
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.containerDark,
-                  foregroundColor: AppColors.purpleLight,
-                  disabledBackgroundColor: AppColors.scaffoldBackground,
-                  disabledForegroundColor: Colors.white24,
-                ),
-              ),
-
               // Shuffle Button
               IconButton.filledTonal(
                 onPressed: onShuffle,
-                icon: const Icon(Icons.shuffle_rounded),
+                icon: const Icon(Icons.shuffle_rounded,
+                    size: 28),
                 tooltip: 'Shuffle board',
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.containerDark,
                   foregroundColor: AppColors.purpleLight,
                 ),
               ),
-
               // Hint Button
               ElevatedButton.icon(
                 onPressed: hintsRemaining > 0 ? onHint : null,
-                icon: const Icon(Icons.lightbulb_outline_rounded, size: 18),
+                icon: const Icon(Icons.lightbulb_outline_rounded, size: 28),
                 label: Text('Hint ($hintsRemaining)'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.purpleAccent,
@@ -154,26 +137,6 @@ class GuessTray extends StatelessWidget {
                   disabledForegroundColor: Colors.white24,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 8.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-
-              // Submit Button
-              ElevatedButton.icon(
-                onPressed: canSubmit ? onSubmit : null,
-                icon: const Icon(Icons.check_rounded, size: 20),
-                label: const Text('SUBMIT'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mintAccent,
-                  foregroundColor: AppColors.greenDarkText,
-                  disabledBackgroundColor: AppColors.containerDark,
-                  disabledForegroundColor: Colors.white24,
-                  elevation: canSubmit ? 6 : 0,
-                  shadowColor: AppColors.mintAccent.withAlpha(150),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
