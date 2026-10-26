@@ -76,8 +76,8 @@ class WordSlotWidget extends StatelessWidget {
               return Container(
                 key: key,
                 margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                width: 26,
-                height: 28,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   color: boxBgColor,
                   borderRadius: BorderRadius.circular(5),
