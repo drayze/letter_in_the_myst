@@ -26,7 +26,7 @@ class _GameScreenState extends State<GameScreen>
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<LetterTile> _allTiles;
-  late List<List<LetterTile?>> _stackedGrid;
+  late List<List<LetterTile?>> _grid;
 
   int _rows = 5;
   int _cols = 5;
@@ -40,7 +40,7 @@ class _GameScreenState extends State<GameScreen>
 
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
-  double _currentTileSize = 54.0;
+  double _currentTileSize = 50.0;
 
   final List<LetterTile> _selectedTiles = [];
   final List<SolvedWordLine> _solvedLines = [];
@@ -109,8 +109,8 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build stacked bubble grid with guaranteed empty bubbles
-    _buildStackedBubbleGrid();
+    // 2. Build spacious 2D grid matrix with empty bubbles mixed in
+    _buildSpaciousGrid();
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -122,12 +122,12 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
-  void _buildStackedBubbleGrid() {
+  void _buildSpaciousGrid() {
     final activeUnsolved = _targetWords.where((w) => !w.isSolved).toList();
     final totalLettersNeeded =
         activeUnsolved.fold(0, (sum, w) => sum + w.word.length);
 
-    // Guarantee at least 6 to 10 extra empty bubbles in the stack
+    // Guarantee 6 to 10 extra empty bubbles in the grid
     final totalCapacityNeeded = totalLettersNeeded + 6;
 
     if (totalCapacityNeeded <= 16) {
@@ -147,8 +147,7 @@ class _GameScreenState extends State<GameScreen>
       _cols = 6;
     }
 
-    _stackedGrid =
-        List.generate(_rows, (_) => List.generate(_cols, (_) => null));
+    _grid = List.generate(_rows, (_) => List.generate(_cols, (_) => null));
     _allTiles = [];
 
     int tileCounter = 0;
@@ -156,7 +155,7 @@ class _GameScreenState extends State<GameScreen>
 
     activeUnsolved.shuffle(rand);
 
-    // Place target words along contiguous adjacent slots in stacked grid
+    // Place target words along contiguous adjacent slots in grid
     for (var target in activeUnsolved) {
       final String word = target.word;
       bool placed = false;
@@ -165,9 +164,9 @@ class _GameScreenState extends State<GameScreen>
         final startR = rand.nextInt(_rows);
         final startC = rand.nextInt(_cols);
 
-        if (_stackedGrid[startR][startC] != null) continue;
+        if (_grid[startR][startC] != null) continue;
 
-        final path = _findStackedSnakePath(startR, startC, word.length);
+        final path = _findGridSnakePath(startR, startC, word.length);
         if (path != null && path.length == word.length) {
           final chars = rand.nextBool()
               ? word.split('')
@@ -181,7 +180,7 @@ class _GameScreenState extends State<GameScreen>
               row: pt.item1,
               col: pt.item2,
             );
-            _stackedGrid[pt.item1][pt.item2] = tile;
+            _grid[pt.item1][pt.item2] = tile;
             _allTiles.add(tile);
           }
           placed = true;
@@ -190,11 +189,11 @@ class _GameScreenState extends State<GameScreen>
       }
 
       if (!placed) {
-        // Fallback: Fill any open adjacent slots
+        // Fallback: Fill open adjacent grid slots
         for (int r = 0; r < _rows; r++) {
           for (int c = 0; c < _cols; c++) {
-            if (_stackedGrid[r][c] == null) {
-              final path = _findOpenSlots(r, c, word.length);
+            if (_grid[r][c] == null) {
+              final path = _findOpenGridSlots(r, c, word.length);
               for (int i = 0; i < path.length; i++) {
                 final pt = path[i];
                 if (i < word.length) {
@@ -204,7 +203,7 @@ class _GameScreenState extends State<GameScreen>
                     row: pt.item1,
                     col: pt.item2,
                   );
-                  _stackedGrid[pt.item1][pt.item2] = tile;
+                  _grid[pt.item1][pt.item2] = tile;
                   _allTiles.add(tile);
                 }
               }
@@ -220,21 +219,21 @@ class _GameScreenState extends State<GameScreen>
     // Fill ALL remaining empty grid slots with matching empty bubbles!
     for (int r = 0; r < _rows; r++) {
       for (int c = 0; c < _cols; c++) {
-        if (_stackedGrid[r][c] == null) {
+        if (_grid[r][c] == null) {
           final tile = LetterTile(
             id: 'empty_tile_${tileCounter++}',
             letter: '', // Empty bubble matching letter bubble appearance!
             row: r,
             col: c,
           );
-          _stackedGrid[r][c] = tile;
+          _grid[r][c] = tile;
           _allTiles.add(tile);
         }
       }
     }
   }
 
-  List<Tuple2>? _findStackedSnakePath(int startR, int startC, int length) {
+  List<Tuple2>? _findGridSnakePath(int startR, int startC, int length) {
     final List<Tuple2> path = [Tuple2(startR, startC)];
     final Set<String> visited = {'$startR,$startC'};
     final rand = Random();
@@ -262,7 +261,7 @@ class _GameScreenState extends State<GameScreen>
             nr < _rows &&
             nc >= 0 &&
             nc < _cols &&
-            _stackedGrid[nr][nc] == null &&
+            _grid[nr][nc] == null &&
             !visited.contains('$nr,$nc')) {
           visited.add('$nr,$nc');
           path.add(Tuple2(nr, nc));
@@ -280,11 +279,11 @@ class _GameScreenState extends State<GameScreen>
     return null;
   }
 
-  List<Tuple2> _findOpenSlots(int startR, int startC, int count) {
+  List<Tuple2> _findOpenGridSlots(int startR, int startC, int count) {
     final List<Tuple2> result = [];
     for (int r = 0; r < _rows; r++) {
       for (int c = 0; c < _cols; c++) {
-        if (_stackedGrid[r][c] == null) {
+        if (_grid[r][c] == null) {
           result.add(Tuple2(r, c));
           if (result.length == count) return result;
         }
@@ -300,9 +299,8 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
-      // Re-build stacked bubble grid occupying full space with empty bubbles
-      _buildStackedBubbleGrid();
-      _feedbackMessage = 'Bubbles restacked!';
+      _buildSpaciousGrid();
+      _feedbackMessage = 'Grid rearranged!';
     });
   }
 
@@ -348,7 +346,7 @@ class _GameScreenState extends State<GameScreen>
             final removed = _selectedTiles.removeLast();
             removed.isSelected = false;
           } else if (!_selectedTiles.contains(touchedTile)) {
-            // Check adjacency in stacked grid
+            // Check grid adjacency
             final last = _selectedTiles.last;
             final isAdjacent = (touchedTile.row - last.row).abs() <= 1 &&
                 (touchedTile.col - last.col).abs() <= 1;
@@ -638,15 +636,15 @@ class _GameScreenState extends State<GameScreen>
             // Layer 1: Main Game UI Column
             Column(
               children: [
-                // Target Secret Words Panel (Answer Tray - MAX 28% of screen height)
+                // Target Secret Words Panel (Answer Tray - MAX 15% of screen height)
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.28,
+                    maxHeight: MediaQuery.of(context).size.height * 0.15,
                   ),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 6.0, horizontal: 6.0),
+                        vertical: 4.0, horizontal: 6.0),
                     decoration: const BoxDecoration(
                       color: Color(0xFF190933),
                       borderRadius: BorderRadius.only(
@@ -695,7 +693,7 @@ class _GameScreenState extends State<GameScreen>
                             onPressed: _shuffleWheel,
                             icon: const Icon(Icons.shuffle_rounded,
                                 color: Color(0xFFE0AAFF), size: 20),
-                            tooltip: 'Restack Bubbles',
+                            tooltip: 'Rearrange Grid',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -795,27 +793,27 @@ class _GameScreenState extends State<GameScreen>
 
                 const SizedBox(height: 4),
 
-                // Full-Space Stacked Bubble Board Area
+                // Spacious 2D Grid Board Area
                 Expanded(
                   child: Container(
                     key: _wheelKey,
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 6.0),
+                        horizontal: 14.0, vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF140032).withAlpha(220),
-                      borderRadius: BorderRadius.circular(24),
+                      color: const Color(0xFF140032).withAlpha(200),
+                      borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                          color: const Color(0xFF5A189A).withAlpha(140),
+                          color: const Color(0xFF5A189A).withAlpha(120),
                           width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3C096C).withAlpha(120),
+                          color: const Color(0xFF3C096C).withAlpha(100),
                           blurRadius: 20,
                         ),
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(26),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           _boardWidth = constraints.maxWidth;
@@ -824,26 +822,18 @@ class _GameScreenState extends State<GameScreen>
                           final cellWidth = _boardWidth / _cols;
                           final cellHeight = _boardHeight / _rows;
 
-                          // Tightly stacked bubble diameter filling the space
+                          // Tile size set to 68% of cell size so bubbles DO NOT touch each other!
                           _currentTileSize =
-                              min(cellWidth, cellHeight) * 0.88;
+                              min(cellWidth, cellHeight) * 0.68;
 
-                          // Position stacked bubbles covering 100% of the board space
+                          // Position each bubble centered inside its grid cell
                           for (int r = 0; r < _rows; r++) {
                             for (int c = 0; c < _cols; c++) {
-                              final tile = _stackedGrid[r][c];
+                              final tile = _grid[r][c];
                               if (tile != null) {
-                                // Stagger odd rows horizontally for a honeycomb stack effect
-                                final xOffset =
-                                    (r % 2 == 1) ? cellWidth * 0.25 : 0.0;
-
-                                final cx = (c + 0.5) * cellWidth + xOffset;
-                                final cy = (r + 0.5) * cellHeight;
-
                                 tile.centerPosition = Offset(
-                                  cx.clamp(_currentTileSize / 2,
-                                      _boardWidth - _currentTileSize / 2),
-                                  cy,
+                                  (c + 0.5) * cellWidth,
+                                  (r + 0.5) * cellHeight,
                                 );
                               }
                             }
@@ -873,7 +863,7 @@ class _GameScreenState extends State<GameScreen>
                                   ),
                                 ),
 
-                                // Full-Space Stacked Bubbles
+                                // Spacious Grid Bubbles (No Touching!)
                                 ..._allTiles
                                     .where((t) => !t.isUsed)
                                     .map((tile) {
