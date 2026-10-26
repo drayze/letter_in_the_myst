@@ -30,8 +30,8 @@ class _GameScreenState extends State<GameScreen>
   late List<LetterTile> _allTiles;
   late List<List<LetterTile?>> _grid;
 
-  int _rows = 5;
-  int _cols = 5;
+  int _rows = 10;
+  int _cols = 10;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -291,7 +291,7 @@ class _GameScreenState extends State<GameScreen>
       _allTiles.add(tile);
     }
 
-    _feedbackMessage = '✨ Summoned "${nextTarget.word}" into the grid!';
+    //_feedbackMessage = '✨ Summoned "${nextTarget.word}" into the grid!';
   }
 
   bool _isSlotOpenForReplenishment(int r, int c) {

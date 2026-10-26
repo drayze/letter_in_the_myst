@@ -23,7 +23,7 @@ class LettersInTheMystApp extends StatelessWidget {
           seedColor: const Color(0xFF5A189A),
           brightness: Brightness.dark,
           surface: const Color(0xFF10002B),
-          primary: const Color(0xFF7B2CBF),
+          primary: const Color(0xFFBF2C78),
           secondary: const Color(0xFFE0AAFF),
         ),
         scaffoldBackgroundColor: const Color(0xFF10002B),
