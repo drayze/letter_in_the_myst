@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
 import '../theme/themes.dart';
 
-/// Renders a Bubble floating in the cauldron (with or without a letter inside)
+/// Renders a Bubble floating in the cauldron
 class LetterBubbleWidget extends StatelessWidget {
   final LetterTile tile;
   final double size;

@@ -140,16 +140,16 @@ class _GameScreenState extends State<GameScreen>
     final totalLettersNeeded =
         activeUnsolved.fold(0, (sum, w) => sum + w.word.length);
 
-    // Guarantee extra empty bubbles in grid for spacious presentation
-    final totalCapacityNeeded = totalLettersNeeded + 6;
-
-    if (totalCapacityNeeded <= 16) {
+    if (totalLettersNeeded <= 12) {
+      _rows = 4;
+      _cols = 3;
+    } else if (totalLettersNeeded <= 16) {
       _rows = 4;
       _cols = 4;
-    } else if (totalCapacityNeeded <= 20) {
+    } else if (totalLettersNeeded <= 20) {
       _rows = 5;
       _cols = 4;
-    } else if (totalCapacityNeeded <= 25) {
+    } else if (totalLettersNeeded <= 25) {
       _rows = 5;
       _cols = 5;
     } else {
@@ -225,22 +225,6 @@ class _GameScreenState extends State<GameScreen>
         }
       }
     }
-
-    // Fill ALL remaining empty grid slots with matching empty bubbles!
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        if (_grid[r][c] == null) {
-          final tile = LetterTile(
-            id: 'empty_tile_${tileCounter++}',
-            letter: '', // Empty bubble matching letter bubble appearance!
-            row: r,
-            col: c,
-          );
-          _grid[r][c] = tile;
-          _allTiles.add(tile);
-        }
-      }
-    }
   }
 
   void _replenishWordFromQueue() {
@@ -290,7 +274,7 @@ class _GameScreenState extends State<GameScreen>
 
   bool _isSlotOpenForReplenishment(int r, int c) {
     final existing = _grid[r][c];
-    return existing == null || existing.isUsed || existing.letter.isEmpty;
+    return existing == null || existing.isUsed;
   }
 
   List<Tuple2>? _findOpenReplenishmentPath(int startR, int startC, int length) {
@@ -451,10 +435,7 @@ class _GameScreenState extends State<GameScreen>
         }
       }
 
-      // Ignore empty bubbles when building words
-      if (touchedTile != null &&
-          !touchedTile.isUsed &&
-          touchedTile.letter.isNotEmpty) {
+      if (touchedTile != null && !touchedTile.isUsed) {
         if (_selectedTiles.isEmpty) {
           _selectedTiles.add(touchedTile);
           touchedTile.isSelected = true;
@@ -697,7 +678,7 @@ class _GameScreenState extends State<GameScreen>
   @override
   Widget build(BuildContext context) {
     final int remainingLetters =
-        _allTiles.where((t) => !t.isUsed && t.letter.isNotEmpty).length;
+        _allTiles.where((t) => !t.isUsed).length;
     final currentWordText = _selectedTiles.map((t) => t.letter).join();
     final accumulatedTotal = ScoreManager().totalScore + _score;
 
