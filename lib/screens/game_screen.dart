@@ -265,6 +265,15 @@ class _GameScreenState extends State<GameScreen>
         col: c,
       );
 
+      if (_boardWidth > 0 && _boardHeight > 0) {
+        final cellW = _boardWidth / _cols;
+        final cellH = _boardHeight / _rows;
+        tile.centerPosition = Offset(
+          (c + 0.5) * cellW,
+          (r + 0.5) * cellH,
+        );
+      }
+
       _grid[r][c] = tile;
       _allTiles.add(tile);
     }
@@ -408,6 +417,11 @@ class _GameScreenState extends State<GameScreen>
   }
 
   // Touch & Gesture Line Drawing
+  void _onPanDown(DragDownDetails details) {
+    if (_flightController.isAnimating) return;
+    _updateTouchPosition(details.localPosition);
+  }
+
   void _onPanStart(DragStartDetails details) {
     if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
@@ -422,8 +436,19 @@ class _GameScreenState extends State<GameScreen>
     setState(() {
       _currentTouchPoint = localPos;
 
+      if (_boardWidth > 0 && _boardHeight > 0) {
+        final cellW = _boardWidth / _cols;
+        final cellH = _boardHeight / _rows;
+        for (var tile in _allTiles) {
+          tile.centerPosition ??= Offset(
+            (tile.col + 0.5) * cellW,
+            (tile.row + 0.5) * cellH,
+          );
+        }
+      }
+
       LetterTile? touchedTile;
-      double minDistance = _currentTileSize * 0.85;
+      double minDistance = max(_currentTileSize * 0.95, 36.0);
 
       for (var tile in _allTiles) {
         if (!tile.isUsed && tile.centerPosition != null) {
@@ -446,15 +471,8 @@ class _GameScreenState extends State<GameScreen>
             final removed = _selectedTiles.removeLast();
             removed.isSelected = false;
           } else if (!_selectedTiles.contains(touchedTile)) {
-            // Check grid adjacency
-            final last = _selectedTiles.last;
-            final isAdjacent = (touchedTile.row - last.row).abs() <= 1 &&
-                (touchedTile.col - last.col).abs() <= 1;
-
-            if (isAdjacent) {
-              _selectedTiles.add(touchedTile);
-              touchedTile.isSelected = true;
-            }
+            _selectedTiles.add(touchedTile);
+            touchedTile.isSelected = true;
           }
         }
       }
@@ -960,6 +978,7 @@ class _GameScreenState extends State<GameScreen>
 
                           return GestureDetector(
                             behavior: HitTestBehavior.opaque,
+                            onPanDown: _onPanDown,
                             onPanStart: _onPanStart,
                             onPanUpdate: _onPanUpdate,
                             onPanEnd: _onPanEnd,
