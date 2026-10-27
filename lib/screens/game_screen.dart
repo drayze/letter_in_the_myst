@@ -625,7 +625,7 @@ class _GameScreenState extends State<GameScreen> {
               children: [
                 // 10% TOP STATUS & CONTROL BAR
                 Expanded(
-                  flex: 10,
+                  flex: 25,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -813,7 +813,7 @@ class _GameScreenState extends State<GameScreen> {
 
                 // 90% MAIN GAME BOARD AREA (NO WORD SLOTS SECTION)
                 Expanded(
-                  flex: 90,
+                  flex: 75,
                   child: Column(
                     children: [
                       // Active Traced Word Banner / Feedback Message
