@@ -7,11 +7,9 @@ import '../models/level.dart';
 import '../services/score_manager.dart';
 import '../theme/themes.dart';
 import '../widgets/bubble_tile_widget.dart';
-import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/victory_dialog.dart';
 import '../widgets/word_line_painter.dart';
-import '../widgets/word_slot_widget.dart';
 
 class GameScreen extends StatefulWidget {
   final Level level;
@@ -22,8 +20,7 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen> {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<TargetWord> _activeBoardWords;
@@ -36,10 +33,6 @@ class _GameScreenState extends State<GameScreen>
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
-  final Map<String, GlobalKey> _slotKeys = {};
-
-  late AnimationController _flightController;
-  final List<FlyingTileData> _activeFlyingTiles = [];
 
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
@@ -62,22 +55,12 @@ class _GameScreenState extends State<GameScreen>
   @override
   void initState() {
     super.initState();
-    _flightController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 550),
-    );
-
-    _flightController.addListener(() {
-      setState(() {});
-    });
-
     _initLevel(widget.level);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _flightController.dispose();
     super.dispose();
   }
 
@@ -92,23 +75,14 @@ class _GameScreenState extends State<GameScreen>
     _selectedTiles.clear();
     _solvedLines.clear();
     _revealedIndices.clear();
-    _activeFlyingTiles.clear();
-    _slotKeys.clear();
 
     // 1. Target Words & Word Queue setup
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
 
-    for (int wIdx = 0; wIdx < level.words.length; wIdx++) {
-      final word = level.words[wIdx];
-      for (int cIdx = 0; cIdx < word.length; cIdx++) {
-        _slotKeys['${wIdx}_$cIdx'] = GlobalKey();
-      }
-    }
-
     _activeBoardWords = [];
     _wordQueue = [];
 
-    // Fit words up to ~16 total letters on board; queue remaining words for dynamic replenishment
+    // Fit words up to ~22 total letters on board; queue remaining words for dynamic replenishment
     int accumulatedLetters = 0;
     const maxActiveBoardLetters = 22;
 
@@ -122,7 +96,7 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build spacious 2D grid matrix for active board words
+    // 2. Build 2D grid matrix for active board words
     _buildSpaciousGrid();
 
     // Start Timer
@@ -199,7 +173,7 @@ class _GameScreenState extends State<GameScreen>
       }
 
       if (!placed) {
-        // Fallback: Fill open adjacent grid slots
+        // Fallback: Fill open grid slots
         for (int r = 0; r < _rows; r++) {
           for (int c = 0; c < _cols; c++) {
             if (_grid[r][c] == null) {
@@ -277,8 +251,6 @@ class _GameScreenState extends State<GameScreen>
       _grid[r][c] = tile;
       _allTiles.add(tile);
     }
-
-    //_feedbackMessage = '✨ Summoned "${nextTarget.word}" into the grid!';
   }
 
   bool _isSlotOpenForReplenishment(int r, int c) {
@@ -416,19 +388,16 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
-  // Touch & Gesture Line Drawing
+  // Touch & Gesture Handling
   void _onPanDown(DragDownDetails details) {
-    if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
   }
 
   void _onPanStart(DragStartDetails details) {
-    if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    if (_flightController.isAnimating) return;
     _updateTouchPosition(details.localPosition);
   }
 
@@ -496,22 +465,8 @@ class _GameScreenState extends State<GameScreen>
       final matchedWord = _targetWords[matchedWordIdx];
       final color = _linePalette[_solvedLines.length % _linePalette.length];
 
-      _activeFlyingTiles.clear();
-
       for (int i = 0; i < _selectedTiles.length; i++) {
         final tile = _selectedTiles[i];
-        final startPos = _getWheelTileCenterInScreen(tile) ?? Offset.zero;
-        final targetPos = _getSlotBoxCenterInScreen(matchedWordIdx, i) ?? startPos;
-
-        _activeFlyingTiles.add(
-          FlyingTileData(
-            letter: tile.letter,
-            startPos: startPos,
-            endPos: targetPos,
-            color: color,
-          ),
-        );
-
         tile.isUsed = true;
         tile.isSelected = false;
         tile.solvedColor = color;
@@ -522,20 +477,16 @@ class _GameScreenState extends State<GameScreen>
       _selectedTiles.clear();
       _currentTouchPoint = null;
 
-      _flightController.forward(from: 0.0).then((_) {
-        setState(() {
-          matchedWord.isSolved = true;
-          _activeFlyingTiles.clear();
+      setState(() {
+        matchedWord.isSolved = true;
 
-          // Replenish next word from queue if available!
-          if (_wordQueue.isNotEmpty) {
-            _replenishWordFromQueue();
-          }
+        if (_wordQueue.isNotEmpty) {
+          _replenishWordFromQueue();
+        }
 
-          if (_targetWords.every((w) => w.isSolved)) {
-            _handleLevelCompleted();
-          }
-        });
+        if (_targetWords.every((w) => w.isSolved)) {
+          _handleLevelCompleted();
+        }
       });
     } else {
       final bool alreadySolved =
@@ -558,37 +509,8 @@ class _GameScreenState extends State<GameScreen>
     }
   }
 
-  Offset? _getWheelTileCenterInScreen(LetterTile tile) {
-    final wheelContext = _wheelKey.currentContext;
-    final screenContext = _screenStackKey.currentContext;
-
-    if (wheelContext != null && screenContext != null && tile.centerPosition != null) {
-      final RenderBox wheelBox = wheelContext.findRenderObject() as RenderBox;
-      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
-      final Offset wheelPosInScreen =
-          wheelBox.localToGlobal(Offset.zero, ancestor: screenBox);
-      return wheelPosInScreen + tile.centerPosition!;
-    }
-    return tile.centerPosition;
-  }
-
-  Offset? _getSlotBoxCenterInScreen(int wordIdx, int charIdx) {
-    final key = _slotKeys['${wordIdx}_$charIdx'];
-    final context = key?.currentContext;
-    final screenContext = _screenStackKey.currentContext;
-
-    if (context != null && screenContext != null) {
-      final RenderBox box = context.findRenderObject() as RenderBox;
-      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
-      final Offset globalBoxPos =
-          box.localToGlobal(Offset.zero, ancestor: screenBox);
-      return globalBoxPos + Offset(box.size.width / 2, box.size.height / 2);
-    }
-    return null;
-  }
-
   void _onHint() {
-    if (_hintsRemaining <= 0 || _flightController.isAnimating) return;
+    if (_hintsRemaining <= 0) return;
 
     int unsolvedWordIdx = -1;
     for (int i = 0; i < _targetWords.length; i++) {
@@ -604,7 +526,7 @@ class _GameScreenState extends State<GameScreen>
     _revealedIndices.putIfAbsent(unsolvedWordIdx, () => {});
 
     int unrevealedCharIdx = -1;
-    for (int c = 0; c < target.length; c++) {
+    for (int c = 0; c < target.word.length; c++) {
       if (!_revealedIndices[unsolvedWordIdx]!.contains(c)) {
         unrevealedCharIdx = c;
         break;
@@ -633,17 +555,13 @@ class _GameScreenState extends State<GameScreen>
       _hintsRemaining--;
       _score = (_score - hintCost).clamp(0, 999999);
       _feedbackMessage =
-          'Hint (-$hintCost pts): Word #${unsolvedWordIdx + 1} contains "$neededLetter"!';
+          'Hint (-$hintCost pts): Secret word contains "$neededLetter"!';
     });
   }
 
   void _handleLevelCompleted() async {
-    _isLevelCompleted = true;
     _timer?.cancel();
-
-    final timeBonus = (300 - _timeInSeconds).clamp(0, 300);
-    final hintBonus = _hintsRemaining * 50;
-    _score += timeBonus + hintBonus;
+    _isLevelCompleted = true;
 
     await ScoreManager().recordLevelCompletion(
       levelId: _currentLevel.id,
@@ -651,33 +569,31 @@ class _GameScreenState extends State<GameScreen>
       wordsSolvedCount: _targetWords.length,
     );
 
-    Future.delayed(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => VictoryDialog(
-          level: _currentLevel,
-          levelScore: _score,
-          totalScore: ScoreManager().totalScore,
-          timeInSeconds: _timeInSeconds,
-          onNextLevel: () {
-            Navigator.pop(context);
-            _loadNextLevel();
-          },
-          onReplay: () {
-            Navigator.pop(context);
-            setState(() {
-              _initLevel(_currentLevel);
-            });
-          },
-          onLevelSelect: () {
-            Navigator.pop(context);
-            Navigator.pop(context, true);
-          },
-        ),
-      );
-    });
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => VictoryDialog(
+        level: _currentLevel,
+        levelScore: _score,
+        totalScore: ScoreManager().totalScore,
+        timeInSeconds: _timeInSeconds,
+        onNextLevel: () {
+          Navigator.pop(dialogContext);
+          _loadNextLevel();
+        },
+        onReplay: () {
+          Navigator.pop(dialogContext);
+          _initLevel(_currentLevel);
+        },
+        onLevelSelect: () {
+          Navigator.pop(dialogContext);
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 
   void _loadNextLevel() {
@@ -895,54 +811,17 @@ class _GameScreenState extends State<GameScreen>
                   ),
                 ),
 
-                // 90% MAIN GAME BOARD AREA
+                // 90% MAIN GAME BOARD AREA (NO WORD SLOTS SECTION)
                 Expanded(
                   flex: 90,
                   child: Column(
                     children: [
-                      // Target Secret Words Panel (Answer Tray)
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.22,
-                        ),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 4.0, horizontal: 6.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackground.withAlpha(160),
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(16),
-                              bottomRight: Radius.circular(16),
-                            ),
-                          ),
-                          child: SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            child: Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 2.0,
-                              runSpacing: 2.0,
-                              children:
-                                  List.generate(_targetWords.length, (index) {
-                                return WordSlotWidget(
-                                  wordIndex: index,
-                                  targetWord: _targetWords[index],
-                                  revealedIndices:
-                                      _revealedIndices[index] ?? {},
-                                  slotKeys: _slotKeys,
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Traced Word Banner / Feedback Message
+                      // Active Traced Word Banner / Feedback Message
                       if (currentWordText.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 4.0),
+                              horizontal: 18.0, vertical: 6.0),
                           decoration: BoxDecoration(
                             color: AppColors.activeCyan,
                             borderRadius: BorderRadius.circular(16),
@@ -962,7 +841,7 @@ class _GameScreenState extends State<GameScreen>
 
                       if (_feedbackMessage != null &&
                           _feedbackMessage!.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
                         Text(
                           _feedbackMessage!,
                           style: AppTextStyles.warningMessage,
@@ -971,7 +850,7 @@ class _GameScreenState extends State<GameScreen>
 
                       const SizedBox(height: 4),
 
-                      // 2D Grid Board
+                      // Full 2D Grid Board
                       Expanded(
                         child: Container(
                           key: _wheelKey,
@@ -1075,16 +954,6 @@ class _GameScreenState extends State<GameScreen>
                 ),
               ],
             ),
-
-            // Layer 2: Topmost Screen Overlay for Flying Tile Animations
-            ..._activeFlyingTiles.map((fTile) {
-              return FlyingTileWidget(
-                data: fTile,
-                progress:
-                    Curves.easeInOutCubic.transform(_flightController.value),
-                initialSize: _currentTileSize,
-              );
-            }),
           ],
         ),
       ),
