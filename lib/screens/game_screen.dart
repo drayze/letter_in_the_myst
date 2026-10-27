@@ -84,7 +84,7 @@ class _GameScreenState extends State<GameScreen> {
 
     // Fit words up to ~22 total letters on board; queue remaining words for dynamic replenishment
     int accumulatedLetters = 0;
-    const maxActiveBoardLetters = 22;
+    const maxActiveBoardLetters = 45;
 
     for (var target in _targetWords) {
       if (accumulatedLetters + target.word.length <= maxActiveBoardLetters ||
