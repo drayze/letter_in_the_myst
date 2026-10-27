@@ -41,7 +41,6 @@ class _GameScreenState extends State<GameScreen>
   final List<FlyingTileData> _activeFlyingTiles = [];
 
   String? _displayedSolvedWord;
-  Color? _displayedSolvedColor;
   Timer? _displayTimer;
 
   double _boardWidth = 0.0;
@@ -525,7 +524,6 @@ class _GameScreenState extends State<GameScreen>
           matchedWord.isSolved = true;
           _activeFlyingTiles.clear();
           _displayedSolvedWord = matchedWord.word;
-          _displayedSolvedColor = color;
 
           _displayTimer = Timer(const Duration(milliseconds: 1500), () {
             if (mounted) {
@@ -909,16 +907,14 @@ class _GameScreenState extends State<GameScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: (_displayedSolvedColor ??
-                                        AppColors.activeCyan)
+                                color: AppColors.greenSolved
                                     .withAlpha(240),
                                 borderRadius: BorderRadius.circular(16),
                                 border:
-                                    Border.all(color: Colors.white, width: 2),
+                                    Border.all(color: AppColors.greenLightText, width: 2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (_displayedSolvedColor ??
-                                            AppColors.activeCyan)
+                                    color: AppColors.activeCyan
                                         .withAlpha(200),
                                     blurRadius: 18,
                                     spreadRadius: 2,
@@ -929,12 +925,12 @@ class _GameScreenState extends State<GameScreen>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(Icons.stars_rounded,
-                                      color: Colors.white, size: 20),
+                                      color: AppColors.greenLightText, size: 20),
                                   const SizedBox(width: 8),
                                   Text(
                                     '✨ $_displayedSolvedWord ✨',
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.greenLightText,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 2.0,
