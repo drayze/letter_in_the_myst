@@ -7,6 +7,7 @@ import '../models/level.dart';
 import '../services/score_manager.dart';
 import '../theme/themes.dart';
 import '../widgets/bubble_tile_widget.dart';
+import '../widgets/flying_tile_widget.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/victory_dialog.dart';
 import '../widgets/word_line_painter.dart';
@@ -20,7 +21,8 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen>
+    with SingleTickerProviderStateMixin {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
   late List<TargetWord> _activeBoardWords;
@@ -33,6 +35,14 @@ class _GameScreenState extends State<GameScreen> {
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
+  final GlobalKey _statsAreaKey = GlobalKey();
+
+  late AnimationController _flightController;
+  final List<FlyingTileData> _activeFlyingTiles = [];
+
+  String? _displayedSolvedWord;
+  Color? _displayedSolvedColor;
+  Timer? _displayTimer;
 
   double _boardWidth = 0.0;
   double _boardHeight = 0.0;
@@ -55,17 +65,32 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    _flightController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _flightController.addListener(() {
+      setState(() {});
+    });
+
     _initLevel(widget.level);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _displayTimer?.cancel();
+    _flightController.dispose();
     super.dispose();
   }
 
   void _initLevel(Level level) {
     _timer?.cancel();
+    _displayTimer?.cancel();
+    _flightController.reset();
+    _activeFlyingTiles.clear();
+    _displayedSolvedWord = null;
+
     _currentLevel = level;
     _isLevelCompleted = false;
     _timeInSeconds = 0;
@@ -82,7 +107,7 @@ class _GameScreenState extends State<GameScreen> {
     _activeBoardWords = [];
     _wordQueue = [];
 
-    // Fit words up to ~22 total letters on board; queue remaining words for dynamic replenishment
+    // Fit words up to max total letters on board; queue remaining words for dynamic replenishment
     int accumulatedLetters = 0;
     const maxActiveBoardLetters = 45;
 
@@ -465,8 +490,25 @@ class _GameScreenState extends State<GameScreen> {
       final matchedWord = _targetWords[matchedWordIdx];
       final color = _linePalette[_solvedLines.length % _linePalette.length];
 
+      _activeFlyingTiles.clear();
+      final statsCenter = _getStatsAreaCenterInScreen();
+      final double spacing = min(32.0, _boardWidth / (guess.length + 2));
+      final double startX = statsCenter.dx - ((guess.length - 1) * spacing / 2);
+
       for (int i = 0; i < _selectedTiles.length; i++) {
         final tile = _selectedTiles[i];
+        final startPos = _getWheelTileCenterInScreen(tile) ?? Offset.zero;
+        final targetPos = Offset(startX + (i * spacing), statsCenter.dy);
+
+        _activeFlyingTiles.add(
+          FlyingTileData(
+            letter: tile.letter,
+            startPos: startPos,
+            endPos: targetPos,
+            color: color,
+          ),
+        );
+
         tile.isUsed = true;
         tile.isSelected = false;
         tile.solvedColor = color;
@@ -477,16 +519,30 @@ class _GameScreenState extends State<GameScreen> {
       _selectedTiles.clear();
       _currentTouchPoint = null;
 
-      setState(() {
-        matchedWord.isSolved = true;
+      _flightController.forward(from: 0.0).then((_) {
+        _displayTimer?.cancel();
+        setState(() {
+          matchedWord.isSolved = true;
+          _activeFlyingTiles.clear();
+          _displayedSolvedWord = matchedWord.word;
+          _displayedSolvedColor = color;
 
-        if (_wordQueue.isNotEmpty) {
-          _replenishWordFromQueue();
-        }
+          _displayTimer = Timer(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              setState(() {
+                _displayedSolvedWord = null;
+              });
+            }
+          });
 
-        if (_targetWords.every((w) => w.isSolved)) {
-          _handleLevelCompleted();
-        }
+          if (_wordQueue.isNotEmpty) {
+            _replenishWordFromQueue();
+          }
+
+          if (_targetWords.every((w) => w.isSolved)) {
+            _handleLevelCompleted();
+          }
+        });
       });
     } else {
       final bool alreadySolved =
@@ -507,6 +563,39 @@ class _GameScreenState extends State<GameScreen> {
         _currentTouchPoint = null;
       });
     }
+  }
+
+  Offset? _getWheelTileCenterInScreen(LetterTile tile) {
+    final wheelContext = _wheelKey.currentContext;
+    final screenContext = _screenStackKey.currentContext;
+
+    if (wheelContext != null &&
+        screenContext != null &&
+        tile.centerPosition != null) {
+      final RenderBox wheelBox = wheelContext.findRenderObject() as RenderBox;
+      final RenderBox screenBox =
+          screenContext.findRenderObject() as RenderBox;
+      final Offset wheelPosInScreen =
+          wheelBox.localToGlobal(Offset.zero, ancestor: screenBox);
+      return wheelPosInScreen + tile.centerPosition!;
+    }
+    return tile.centerPosition;
+  }
+
+  Offset _getStatsAreaCenterInScreen() {
+    final statsContext = _statsAreaKey.currentContext;
+    final screenContext = _screenStackKey.currentContext;
+
+    if (statsContext != null && screenContext != null) {
+      final RenderBox statsBox = statsContext.findRenderObject() as RenderBox;
+      final RenderBox screenBox =
+          screenContext.findRenderObject() as RenderBox;
+      final Offset statsPos =
+          statsBox.localToGlobal(Offset.zero, ancestor: screenBox);
+      return statsPos +
+          Offset(statsBox.size.width / 2, statsBox.size.height / 2);
+    }
+    return const Offset(200, 80);
   }
 
   void _onHint() {
@@ -623,10 +712,11 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             Column(
               children: [
-                // 10% TOP STATUS & CONTROL BAR
+                // 25% TOP STATUS & CONTROL BAR
                 Expanded(
                   flex: 25,
                   child: Container(
+                    key: _statsAreaKey,
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12.0, vertical: 4.0),
@@ -639,179 +729,233 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        // Row 1: Level, Timer, Score, Help
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // Level Name / ID
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppColors.purpleAccent.withAlpha(80),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppColors.purpleAccent.withAlpha(120),
-                                ),
-                              ),
-                              child: Text(
-                                'Lvl ${_currentLevel.id}: ${_currentLevel.name}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-
-                            // Timer
+                            // Row 1: Level, Timer, Score, Help
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(
-                                  Icons.timer_outlined,
-                                  color: AppColors.goldAccent,
-                                  size: 15,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            // Score
-                            Text(
-                              'Score: $_score',
-                              style: const TextStyle(
-                                color: AppColors.goldAccent,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-
-                            // How to Play Icon
-                            IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => const HowToPlayDialog(),
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.help_outline_rounded,
-                                color: AppColors.purpleLight,
-                                size: 20,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-
-                        // Row 2: Words to find, Solved, Queued, Shuffle, Hint
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Word stats: To find, Solved, Queued
-                            Row(
-                              children: [
-                                Text(
-                                  'To Find: ${_targetWords.length}',
-                                  style: const TextStyle(
-                                    color: AppColors.purpleLight,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Solved: $solvedCount',
-                                  style: const TextStyle(
-                                    color: AppColors.mintAccent,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
+                                      horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: AppColors.purpleBorder.withAlpha(150),
-                                    borderRadius: BorderRadius.circular(6),
+                                    color: AppColors.purpleAccent.withAlpha(80),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color:
+                                          AppColors.purpleAccent.withAlpha(120),
+                                    ),
                                   ),
                                   child: Text(
-                                    'Queued: ${_wordQueue.length}',
+                                    'Lvl ${_currentLevel.id}: ${_currentLevel.name}',
                                     style: const TextStyle(
-                                      color: AppColors.goldAccent,
-                                      fontSize: 11,
+                                      color: Colors.white,
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
 
-                            // Controls: Shuffle & Hint
-                            Row(
-                              children: [
-                                IconButton(
-                                  onPressed: _shuffleWheel,
-                                  icon: const Icon(
-                                    Icons.shuffle_rounded,
-                                    color: AppColors.activeCyan,
-                                    size: 19,
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.timer_outlined,
+                                      color: AppColors.goldAccent,
+                                      size: 15,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Text(
+                                  'Score: $_score',
+                                  style: const TextStyle(
+                                    color: AppColors.goldAccent,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  tooltip: 'Shuffle Grid',
+                                ),
+
+                                IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) =>
+                                          const HowToPlayDialog(),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.help_outline_rounded,
+                                    color: AppColors.purpleLight,
+                                    size: 20,
+                                  ),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
-                                const SizedBox(width: 10),
-                                ElevatedButton.icon(
-                                  onPressed:
-                                      _hintsRemaining > 0 ? _onHint : null,
-                                  icon: const Icon(
-                                    Icons.lightbulb_outline_rounded,
-                                    size: 13,
-                                  ),
-                                  label: Text(
-                                    'Hint ($_hintsRemaining)',
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.purpleAccent,
-                                    foregroundColor: Colors.white,
-                                    disabledBackgroundColor:
-                                        AppColors.containerDark,
-                                    disabledForegroundColor: Colors.white24,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0, vertical: 3.0),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                              ],
+                            ),
+
+                            // Row 2: Words to find, Solved, Queued, Shuffle, Hint
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'To Find: ${_targetWords.length}',
+                                      style: const TextStyle(
+                                        color: AppColors.purpleLight,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Solved: $solvedCount',
+                                      style: const TextStyle(
+                                        color: AppColors.mintAccent,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.purpleBorder
+                                            .withAlpha(150),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'Queued: ${_wordQueue.length}',
+                                        style: const TextStyle(
+                                          color: AppColors.goldAccent,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: _shuffleWheel,
+                                      icon: const Icon(
+                                        Icons.shuffle_rounded,
+                                        color: AppColors.activeCyan,
+                                        size: 19,
+                                      ),
+                                      tooltip: 'Shuffle Grid',
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton.icon(
+                                      onPressed:
+                                          _hintsRemaining > 0 ? _onHint : null,
+                                      icon: const Icon(
+                                        Icons.lightbulb_outline_rounded,
+                                        size: 13,
+                                      ),
+                                      label: Text(
+                                        'Hint ($_hintsRemaining)',
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.purpleAccent,
+                                        foregroundColor: Colors.white,
+                                        disabledBackgroundColor:
+                                            AppColors.containerDark,
+                                        disabledForegroundColor: Colors.white24,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0, vertical: 3.0),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ],
                         ),
+
+                        // Solved Word Popup Banner in Stats Panel
+                        if (_displayedSolvedWord != null)
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: _displayedSolvedWord != null ? 1.0 : 0.0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: (_displayedSolvedColor ??
+                                        AppColors.activeCyan)
+                                    .withAlpha(240),
+                                borderRadius: BorderRadius.circular(16),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (_displayedSolvedColor ??
+                                            AppColors.activeCyan)
+                                        .withAlpha(200),
+                                    blurRadius: 18,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.stars_rounded,
+                                      color: Colors.white, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '✨ $_displayedSolvedWord ✨',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2.0,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black54,
+                                          blurRadius: 4,
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                 ),
 
-                // 90% MAIN GAME BOARD AREA (NO WORD SLOTS SECTION)
+                // 75% MAIN GAME BOARD AREA
                 Expanded(
                   flex: 75,
                   child: Column(
@@ -954,6 +1098,16 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
             ),
+
+            // Layer 2: Flying Tile Animations Overlay
+            ..._activeFlyingTiles.map((fTile) {
+              return FlyingTileWidget(
+                data: fTile,
+                progress:
+                    Curves.easeInOutCubic.transform(_flightController.value),
+                initialSize: _currentTileSize,
+              );
+            }),
           ],
         ),
       ),
