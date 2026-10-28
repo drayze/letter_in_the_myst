@@ -137,22 +137,24 @@ class _GameScreenState extends State<GameScreen>
     final rand = Random();
 
     final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
-    activeUnsolved.shuffle(rand);
 
+    // Collect ALL letters across all active board words
+    final List<String> allLetters = [];
     for (var target in activeUnsolved) {
-      final String word = target.word;
-      final chars = rand.nextBool()
-          ? word.split('')
-          : word.split('').reversed.toList();
+      allLetters.addAll(target.word.split(''));
+    }
 
-      for (int i = 0; i < chars.length; i++) {
-        _allTiles.add(
-          LetterTile(
-            id: 'tile_${tileCounter++}_${chars[i]}',
-            letter: chars[i],
-          ),
-        );
-      }
+    // Thoroughly shuffle/scramble all letters together so words intermix
+    allLetters.shuffle(rand);
+    allLetters.shuffle(rand);
+
+    for (var letter in allLetters) {
+      _allTiles.add(
+        LetterTile(
+          id: 'tile_${tileCounter++}_$letter',
+          letter: letter,
+        ),
+      );
     }
 
     _arrangeTilesOnCircle();
@@ -195,17 +197,26 @@ class _GameScreenState extends State<GameScreen>
 
     final String word = nextTarget.word;
     final rand = Random();
-    final chars = rand.nextBool()
-        ? word.split('')
-        : word.split('').reversed.toList();
-
     int tileCounter = _allTiles.length;
-    for (int i = 0; i < chars.length; i++) {
+
+    for (int i = 0; i < word.length; i++) {
       final tile = LetterTile(
-        id: 'tile_${tileCounter++}_${chars[i]}',
-        letter: chars[i],
+        id: 'tile_${tileCounter++}_${word[i]}',
+        letter: word[i],
       );
       _allTiles.add(tile);
+    }
+
+    // Thoroughly scramble all remaining active tiles on the wheel together
+    final active = _allTiles.where((t) => !t.isUsed).toList();
+    active.shuffle(rand);
+    active.shuffle(rand);
+
+    int activeIdx = 0;
+    for (int i = 0; i < _allTiles.length; i++) {
+      if (!_allTiles[i].isUsed) {
+        _allTiles[i] = active[activeIdx++];
+      }
     }
 
     _arrangeTilesOnCircle();
@@ -218,8 +229,10 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
+      final rand = Random();
       final active = _allTiles.where((t) => !t.isUsed).toList();
-      active.shuffle(Random());
+      active.shuffle(rand);
+      active.shuffle(rand);
 
       int activeIdx = 0;
       for (int i = 0; i < _allTiles.length; i++) {
@@ -229,7 +242,7 @@ class _GameScreenState extends State<GameScreen>
       }
 
       _arrangeTilesOnCircle();
-      _feedbackMessage = 'Wheel rearranged!';
+      _feedbackMessage = 'Wheel scrambled!';
     });
   }
 
