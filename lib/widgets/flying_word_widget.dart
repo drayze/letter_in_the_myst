@@ -73,3 +73,71 @@ class FlyingTileWidget extends StatelessWidget {
     );
   }
 }
+
+class FlyingTilesOverlay extends StatefulWidget {
+  final List<FlyingTileData> tilesData;
+  final VoidCallback onComplete;
+  final Duration duration;
+
+  const FlyingTilesOverlay({
+    super.key,
+    required this.tilesData,
+    required this.onComplete,
+    this.duration = const Duration(milliseconds: 650),
+  });
+
+  @override
+  State<FlyingTilesOverlay> createState() => _FlyingTilesOverlayState();
+}
+
+class _FlyingTilesOverlayState extends State<FlyingTilesOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.fastOutSlowIn,
+    );
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onComplete();
+      }
+    });
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final progress = _animation.value;
+        return Stack(
+          children: widget.tilesData.map((data) {
+            return FlyingTileWidget(
+              data: data,
+              progress: progress,
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}

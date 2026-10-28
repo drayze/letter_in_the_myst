@@ -201,25 +201,48 @@ class _GameScreenState extends State<GameScreen> {
     if (matchedIndex != -1) {
       final String wordStr = guess;
 
-      // Calculate starting offset from Guess Tray
-      Offset startOffset = const Offset(100, 500);
+      // Calculate positions for each letter tile
+      Offset trayCenter = const Offset(200, 600);
+      Size traySize = const Size(300, 50);
       final RenderBox? trayBox =
           _guessTrayKey.currentContext?.findRenderObject() as RenderBox?;
       if (trayBox != null) {
-        final pos = trayBox.localToGlobal(Offset.zero);
-        startOffset = Offset(
-          pos.dx + (trayBox.size.width / 2) - (wordStr.length * 16),
-          pos.dy + 10,
-        );
+        trayCenter = trayBox.localToGlobal(Offset.zero);
+        traySize = trayBox.size;
       }
 
-      // Calculate target offset from target WordSlotWidget
-      Offset targetOffset = const Offset(100, 100);
+      Offset slotTopLeft = const Offset(100, 100);
       final RenderBox? slotBox = _wordSlotKeys[matchedIndex]
           ?.currentContext
           ?.findRenderObject() as RenderBox?;
       if (slotBox != null) {
-        targetOffset = slotBox.localToGlobal(Offset.zero);
+        slotTopLeft = slotBox.localToGlobal(Offset.zero);
+      }
+
+      // Generate FlyingTileData for each letter in wordStr
+      final List<FlyingTileData> flyingTilesData = [];
+      final double totalWidth = wordStr.length * 36.0;
+      final double trayStartX =
+          trayCenter.dx + (traySize.width / 2) - (totalWidth / 2) + 18.0;
+      final double trayStartY = trayCenter.dy + 30.0;
+
+      for (int i = 0; i < wordStr.length; i++) {
+        final startPos = Offset(trayStartX + (i * 36.0), trayStartY);
+
+        // Target box center inside WordSlotWidget
+        final endPos = Offset(
+          slotTopLeft.dx + 12.0 + (i * 34.0) + 15.0,
+          slotTopLeft.dy + 20.0,
+        );
+
+        flyingTilesData.add(
+          FlyingTileData(
+            letter: wordStr[i],
+            startPos: startPos,
+            endPos: endPos,
+            color: AppColors.purpleBright,
+          ),
+        );
       }
 
       // Immediately consume solved tiles so they vanish from scramble area
@@ -231,11 +254,9 @@ class _GameScreenState extends State<GameScreen> {
         _selectedTiles.clear();
       });
 
-      // Launch flying word animation above everything on screen
-      _launchFlyingWordOverlay(
-        word: wordStr,
-        startOffset: startOffset,
-        targetOffset: targetOffset,
+      // Launch flying tile overlay above everything on screen
+      _launchFlyingTilesOverlay(
+        tilesData: flyingTilesData,
         onComplete: () {
           if (!mounted) return;
           setState(() {
@@ -263,19 +284,15 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _launchFlyingWordOverlay({
-    required String word,
-    required Offset startOffset,
-    required Offset targetOffset,
+  void _launchFlyingTilesOverlay({
+    required List<FlyingTileData> tilesData,
     required VoidCallback onComplete,
   }) {
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
-      builder: (context) => FlyingTileWidget(
-        word: word,
-        startOffset: startOffset,
-        targetOffset: targetOffset,
+      builder: (context) => FlyingTilesOverlay(
+        tilesData: tilesData,
         onComplete: () {
           overlayEntry.remove();
           onComplete();
