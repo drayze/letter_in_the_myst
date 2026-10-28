@@ -31,8 +31,8 @@ class _GameScreenState extends State<GameScreen>
   late List<LetterTile> _allTiles;
   late List<List<LetterTile?>> _grid;
 
-  int _rows = 10;
-  int _cols = 10;
+  int _rows = 4;
+  int _cols = 4;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -110,7 +110,7 @@ class _GameScreenState extends State<GameScreen>
 
     // Fit words up to ~16 total letters on board; queue remaining words for dynamic replenishment
     int accumulatedLetters = 0;
-    const maxActiveBoardLetters = 22;
+    const maxActiveBoardLetters = 16;
 
     for (var target in _targetWords) {
       if (accumulatedLetters + target.word.length <= maxActiveBoardLetters ||
