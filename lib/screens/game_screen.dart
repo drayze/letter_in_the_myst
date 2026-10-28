@@ -5,6 +5,7 @@ import '../data/levels_data.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
 import '../theme/app_theme.dart';
+import '../widgets/flying_word_widget.dart';
 import '../widgets/guess_tray.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/letter_tile_widget.dart';
@@ -26,6 +27,9 @@ class _GameScreenState extends State<GameScreen> {
   late List<LetterTile> _scrambleTiles;
   final List<LetterTile> _selectedTiles = [];
   final Map<int, Set<int>> _revealedIndices = {};
+
+  final GlobalKey _guessTrayKey = GlobalKey();
+  final Map<int, GlobalKey> _wordSlotKeys = {};
 
   int _hintsRemaining = 5;
   int _score = 0;
@@ -56,6 +60,7 @@ class _GameScreenState extends State<GameScreen> {
     _feedbackMessage = null;
     _selectedTiles.clear();
     _revealedIndices.clear();
+    _wordSlotKeys.clear();
 
     // 1. Initialize Target Words
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
@@ -120,24 +125,11 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onShuffle() {
     setState(() {
-      // Return selected tiles to pool first
       for (var tile in _selectedTiles) {
         tile.isSelected = false;
       }
       _selectedTiles.clear();
-
-      // Separate unused tiles and shuffle them
-      final unused = _scrambleTiles.where((t) => !t.isUsed).toList();
-      unused.shuffle(Random());
-
-      // Reconstruct scramble list maintaining solved tile positions or compacting
-      int unusedIndex = 0;
-      for (int i = 0; i < _scrambleTiles.length; i++) {
-        if (!_scrambleTiles[i].isUsed) {
-          _scrambleTiles[i] = unused[unusedIndex++];
-        }
-      }
-
+      _scrambleTiles.shuffle(Random());
       _feedbackMessage = 'Letters shuffled!';
     });
   }
@@ -172,10 +164,10 @@ class _GameScreenState extends State<GameScreen> {
 
     final neededLetter = target.word[unrevealedCharIdx];
 
-    // Highlight a matching unused, unselected tile in scramble pool
+    // Highlight a matching tile in scramble pool
     LetterTile? hintTile;
     for (var tile in _scrambleTiles) {
-      if (!tile.isUsed && !tile.isSelected && tile.letter == neededLetter) {
+      if (!tile.isSelected && tile.letter == neededLetter) {
         hintTile = tile;
         break;
       }
@@ -198,35 +190,64 @@ class _GameScreenState extends State<GameScreen> {
     final guess = _selectedTiles.map((t) => t.letter).join();
 
     // Check if guess matches any unsolved target word
-    TargetWord? matchedWord;
-    for (var target in _targetWords) {
-      if (!target.isSolved && target.word == guess) {
-        matchedWord = target;
+    int matchedIndex = -1;
+    for (int i = 0; i < _targetWords.length; i++) {
+      if (!_targetWords[i].isSolved && _targetWords[i].word == guess) {
+        matchedIndex = i;
         break;
       }
     }
 
-    if (matchedWord != null) {
-      // MATCH FOUND!
+    if (matchedIndex != -1) {
+      final String wordStr = guess;
+
+      // Calculate starting offset from Guess Tray
+      Offset startOffset = const Offset(100, 500);
+      final RenderBox? trayBox =
+          _guessTrayKey.currentContext?.findRenderObject() as RenderBox?;
+      if (trayBox != null) {
+        final pos = trayBox.localToGlobal(Offset.zero);
+        startOffset = Offset(
+          pos.dx + (trayBox.size.width / 2) - (wordStr.length * 16),
+          pos.dy + 10,
+        );
+      }
+
+      // Calculate target offset from target WordSlotWidget
+      Offset targetOffset = const Offset(100, 100);
+      final RenderBox? slotBox = _wordSlotKeys[matchedIndex]
+          ?.currentContext
+          ?.findRenderObject() as RenderBox?;
+      if (slotBox != null) {
+        targetOffset = slotBox.localToGlobal(Offset.zero);
+      }
+
+      // Immediately consume solved tiles so they vanish from scramble area
+      final tilesToRemove = Set<LetterTile>.from(_selectedTiles);
       setState(() {
-        matchedWord!.isSolved = true;
-
-        // Mark selected tiles as permanently used/consumed
-        for (var tile in _selectedTiles) {
-          tile.isUsed = true;
-          tile.isSelected = false;
-          tile.isHinted = false;
-        }
-
+        _scrambleTiles.removeWhere((tile) => tilesToRemove.contains(tile));
         _score += guess.length * 100;
-        _feedbackMessage = '✨ Solved "${matchedWord.word}"!';
+        _feedbackMessage = '✨ Solved "$wordStr"!';
         _selectedTiles.clear();
-
-        // Check if level is complete
-        if (_targetWords.every((w) => w.isSolved)) {
-          _handleLevelCompleted();
-        }
       });
+
+      // Launch flying word animation above everything on screen
+      _launchFlyingWordOverlay(
+        word: wordStr,
+        startOffset: startOffset,
+        targetOffset: targetOffset,
+        onComplete: () {
+          if (!mounted) return;
+          setState(() {
+            _targetWords[matchedIndex].isSolved = true;
+
+            // Check if level is complete
+            if (_targetWords.every((w) => w.isSolved)) {
+              _handleLevelCompleted();
+            }
+          });
+        },
+      );
     } else {
       // Check if already solved
       final bool alreadySolved =
@@ -240,6 +261,29 @@ class _GameScreenState extends State<GameScreen> {
         }
       });
     }
+  }
+
+  void _launchFlyingWordOverlay({
+    required String word,
+    required Offset startOffset,
+    required Offset targetOffset,
+    required VoidCallback onComplete,
+  }) {
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => FlyingWordWidget(
+        word: word,
+        startOffset: startOffset,
+        targetOffset: targetOffset,
+        onComplete: () {
+          overlayEntry.remove();
+          onComplete();
+        },
+      ),
+    );
+
+    Overlay.of(context).insert(overlayEntry);
   }
 
   void _handleLevelCompleted() {
@@ -294,8 +338,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final int remainingLetters =
-        _scrambleTiles.where((t) => !t.isUsed).length;
+    final int remainingLetters = _scrambleTiles.length;
 
     return Scaffold(
       backgroundColor: AppColors.bgDeep,
@@ -384,9 +427,13 @@ class _GameScreenState extends State<GameScreen> {
                   spacing: 4.0,
                   runSpacing: 4.0,
                   children: List.generate(_targetWords.length, (index) {
-                    return WordSlotWidget(
-                      targetWord: _targetWords[index],
-                      revealedIndices: _revealedIndices[index] ?? {},
+                    _wordSlotKeys[index] ??= GlobalKey();
+                    return KeyedSubtree(
+                      key: _wordSlotKeys[index],
+                      child: WordSlotWidget(
+                        targetWord: _targetWords[index],
+                        revealedIndices: _revealedIndices[index] ?? {},
+                      ),
                     );
                   }),
                 ),
@@ -455,6 +502,7 @@ class _GameScreenState extends State<GameScreen> {
 
             // Guess Tray Component at Bottom
             GuessTray(
+              key: _guessTrayKey,
               selectedTiles: _selectedTiles,
               onTileTap: _onSelectedTileTap,
               onSubmit: _onSubmit,
