@@ -2,126 +2,159 @@ import 'dart:math';
 import '../models/level.dart';
 
 class LevelsData {
-  static const List<Level> levels = [
-    Level(
-      id: 1,
-      name: 'Mystic Grove',
-      category: 'Nature',
-      words: ['LEAF', 'TREE', 'MOSS', 'FERN'], // 4 words
-      description: 'Unscramble the initial secrets hidden within the enchanted grove.',
-    ),
-    Level(
-      id: 2,
-      name: 'Ancient Library',
-      category: 'Wisdom',
-      words: ['BOOK', 'RUNE', 'TOME', 'PAGE'], // 4 words
-      description: 'Dusty scrolls hold forgotten letters waiting to be revealed.',
-    ),
-    Level(
-      id: 3,
-      name: 'Celestial Night',
-      category: 'Cosmic',
-      words: ['STAR', 'MOON', 'GLOW', 'DUSK', 'BEAM'], // 5 words
-      description: 'Look to the night sky to find the glowing starlight words.',
-    ),
-    Level(
-      id: 4,
-      name: 'Crystal Cavern',
-      category: 'Elements',
-      words: ['GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'MINE'], // 6 words
-      description: 'Reflective crystals shatter into letters among the shadows.',
-    ),
-    Level(
-      id: 5,
-      name: 'Arcane Sanctum',
-      category: 'Sorcery',
-      words: ['MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HERB', 'BREW'], // 7 words
-      description: 'Weave mystical runes into words of pure spellcraft.',
-    ),
-    Level(
-      id: 6,
-      name: 'Whispering River',
-      category: 'Nature',
-      words: ['WATER', 'RIVER', 'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SEA'], // 8 words
-      description: 'Flowing waters swirl letters across the mysterious shore.',
-    ),
-    Level(
-      id: 7,
-      name: 'Twilight Forest',
-      category: 'Nature',
-      words: ['TIMBER', 'FOREST', 'BRANCH', 'WOOD', 'LEAF', 'TREE', 'ROOT', 'BARK', 'STEM'], // 9 words
-      description: 'Deep within the woods, ancient trunks whisper their names.',
-    ),
-    Level(
-      id: 8,
-      name: 'Forgotten Vault',
-      category: 'Mystery',
-      words: ['CIPHER', 'PUZZLE', 'MYSTERY', 'CRYPT', 'LOCK', 'RUNE', 'KEY', 'CODE', 'VAULT', 'SECRET'], // 10 words
-      description: 'Decode the ancient lock where every tile plays its part.',
-    ),
-    Level(
-      id: 9,
-      name: 'Alchemy Lab',
-      category: 'Science',
-      words: ['ELIXIR', 'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST', 'SPELL', 'BOIL', 'VIAL', 'MAGIC'], // 11 words
-      description: 'Mix glowing concoctions of scrambled golden runes.',
-    ),
-    Level(
-      id: 10,
-      name: 'Cosmic Nebula',
-      category: 'Cosmic',
-      words: ['GALAXY', 'COMET', 'NEBULA', 'ORBIT', 'STAR', 'MOON', 'ASTRAL', 'SOLAR', 'LUNAR', 'RAY', 'GLOW', 'DUSK'], // 12 words
-      description: 'Stardust particles align to form celestial mysteries.',
-    ),
-    Level(
-      id: 11,
-      name: 'Shadow Realm',
-      category: 'Illusion',
-      words: ['SHADOW', 'SECRET', 'RIDDLE', 'GHOST', 'DARK', 'MIST', 'NIGHT', 'PHANTOM', 'RUNE', 'CRYPT', 'VAULT', 'MASK', 'GIFT'], // 13 words
-      description: 'Darkness parts when you reveal the true words of the mist.',
-    ),
-    Level(
-      id: 12,
-      name: 'Grand Sanctuary',
-      category: 'Mastery',
-      words: ['PHANTOM', 'ENIGMA', 'WHISPER', 'TEMPLE', 'SHADOW', 'RIDDLE', 'SECRET', 'CRYPT', 'VAULT', 'RUNE', 'MAGIC', 'GHOST', 'MYSTERY', 'DARK'], // 14 words
-      description: 'The ultimate test of letters in the myst.',
-    ),
-  ];
+  /// Categorized word database
+  static const Map<String, List<String>> categoryWordBank = {
+    'Nature': [
+      'LEAF', 'TREE', 'MOSS', 'FERN', 'WOOD', 'ROOT', 'BARK', 'STEM',
+      'VINE', 'SEED', 'FLORA', 'GROVE', 'PINES', 'SHADE', 'BRANCH',
+      'TRUNK', 'BLOOM', 'PLANT', 'FOREST', 'BUD', 'BROOK', 'RIVER',
+      'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SURF', 'POND'
+    ],
+    'Wisdom': [
+      'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISE', 'MIST',
+      'SCROLL', 'QUILL', 'SHELF', 'INK', 'MIND', 'LOGIC', 'WORD',
+      'FACT', 'LORE', 'KNOW', 'LEARN', 'TRUTH', 'GUIDE', 'STUDY'
+    ],
+    'Cosmic': [
+      'STAR', 'MOON', 'GLOW', 'DUSK', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
+      'SOLAR', 'NEBULA', 'GALAXY', 'ORBIT', 'COMET', 'NOVA', 'PLANET',
+      'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'STARRY', 'HALO'
+    ],
+    'Elements': [
+      'GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'COIN', 'ORE', 'MINE',
+      'CAVE', 'JADE', 'ROCK', 'GLINT', 'SHINE', 'CRYSTAL', 'QUARTZ',
+      'AMBER', 'SILVER', 'PEARL', 'JEWEL', 'FLINT', 'COPPER', 'IRON'
+    ],
+    'Sorcery': [
+      'MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HEX', 'BREW', 'HERB',
+      'RELIC', 'CURSE', 'ORB', 'MANA', 'ELIXIR', 'POTION', 'WITCH',
+      'WIZARD', 'MYSTIC', 'ARCANE', 'TRICK', 'RITUAL', 'STAFF'
+    ],
+    'Mystery': [
+      'CIPHER', 'PUZZLE', 'MYSTERY', 'CRYPT', 'LOCK', 'RUNE', 'KEY',
+      'CODE', 'VAULT', 'SECRET', 'RIDDLE', 'MASK', 'GHOST', 'PHANTOM',
+      'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR'
+    ],
+    'Science': [
+      'ELIXIR', 'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST',
+      'SPELL', 'BOIL', 'VIAL', 'MAGIC', 'ACID', 'VAPOR', 'MIX',
+      'TOXIN', 'LAB', 'ATOM', 'BOND', 'CELL', 'FORM', 'HEAT'
+    ],
+    'Illusion': [
+      'SHADOW', 'SECRET', 'RIDDLE', 'GHOST', 'DARK', 'MIST', 'NIGHT',
+      'PHANTOM', 'RUNE', 'CRYPT', 'VAULT', 'MASK', 'MIRAGE', 'GLOOM',
+      'SHADE', 'DREAM', 'VISION', 'VEIL', 'ECHO', 'FOG', 'CLOAK'
+    ],
+    'Mastery': [
+      'PHANTOM', 'ENIGMA', 'WHISPER', 'TEMPLE', 'SHADOW', 'RIDDLE',
+      'SECRET', 'CRYPT', 'VAULT', 'RUNE', 'MAGIC', 'GHOST', 'MYSTERY',
+      'DARK', 'SHRINE', 'LEGEND', 'MASTER', 'ARCANE', 'SPIRIT', 'CROWN'
+    ],
+  };
 
-  /// Master word pool for dynamic random level generation
-  static const List<String> masterWordBank = [
-    'LEAF', 'TREE', 'MOSS', 'FERN', 'WOOD', 'ROOT', 'BARK', 'STEM',
-    'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISE', 'MIST',
-    'STAR', 'MOON', 'GLOW', 'DUSK', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
-    'GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'COIN', 'ORE', 'MINE',
-    'MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HEX', 'BREW', 'HERB',
-    'WATER', 'RIVER', 'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SEA',
-    'FIRE', 'SPARK', 'FLAME', 'HEAT', 'ASH', 'COAL', 'EMBER', 'BURN',
-    'SNOW', 'FROST', 'ICE', 'CHILL', 'COLD', 'HAIL', 'BLAST', 'WIND',
-    'DRAGON', 'BEAST', 'HYDRA', 'WYRM', 'CLAW', 'FANG', 'ROAR', 'WING',
-    'SHIELD', 'SWORD', 'ARMOR', 'HELM', 'BLADE', 'BOW', 'AXE', 'GUARD',
-  ];
+  /// Master word database containing all words across all categories
+  static List<String> get masterWordDatabase {
+    final Set<String> all = {};
+    for (var list in categoryWordBank.values) {
+      all.addAll(list);
+    }
+    return all.toList();
+  }
 
-  static Level getRandomLevel(int id) {
-    // Determine target word count: Level 1 and 2 have 4 words, Level id has (id + 2) words (capped at 14)
-    final int wordCount = (id + 2).clamp(4, 14);
-    final rand = Random(id * 997); // Deterministic random seed per level id
+  /// Generates a random selection of 6 to 8 unique words from a word bank
+  static List<String> getRandomWordsForLevel({
+    String? category,
+    int? count,
+    Random? random,
+  }) {
+    final rand = random ?? Random();
+    final int targetCount = count ?? (6 + rand.nextInt(3)); // 6, 7, or 8 words
 
-    final Set<String> selectedWords = {};
-    final bankCopy = List<String>.from(masterWordBank);
-
-    while (selectedWords.length < wordCount && bankCopy.isNotEmpty) {
-      final index = rand.nextInt(bankCopy.length);
-      selectedWords.add(bankCopy.removeAt(index));
+    final List<String> pool = [];
+    if (category != null && categoryWordBank.containsKey(category)) {
+      pool.addAll(categoryWordBank[category]!);
+    } else {
+      pool.addAll(masterWordDatabase);
     }
 
+    pool.shuffle(rand);
+    final Set<String> selected = {};
+
+    for (var w in pool) {
+      selected.add(w);
+      if (selected.length >= targetCount) break;
+    }
+
+    // Fallback if pool was small
+    if (selected.length < targetCount) {
+      final master = masterWordDatabase..shuffle(rand);
+      for (var w in master) {
+        selected.add(w);
+        if (selected.length >= targetCount) break;
+      }
+    }
+
+    return selected.toList();
+  }
+
+  /// Story levels configuration definitions
+  static final List<LevelConfig> storyLevelConfigs = [
+    LevelConfig(1, 'Mystic Grove', 'Nature', 'Unscramble the secrets hidden within the enchanted grove.'),
+    LevelConfig(2, 'Ancient Library', 'Wisdom', 'Dusty scrolls hold forgotten letters waiting to be revealed.'),
+    LevelConfig(3, 'Celestial Night', 'Cosmic', 'Look to the night sky to find the glowing starlight words.'),
+    LevelConfig(4, 'Crystal Cavern', 'Elements', 'Reflective crystals shatter into letters among the shadows.'),
+    LevelConfig(5, 'Arcane Sanctum', 'Sorcery', 'Weave mystical runes into words of pure spellcraft.'),
+    LevelConfig(6, 'Whispering River', 'Nature', 'Flowing waters swirl letters across the mysterious shore.'),
+    LevelConfig(7, 'Twilight Forest', 'Nature', 'Deep within the woods, ancient trunks whisper their names.'),
+    LevelConfig(8, 'Forgotten Vault', 'Mystery', 'Decode the ancient lock where every tile plays its part.'),
+    LevelConfig(9, 'Alchemy Lab', 'Science', 'Mix glowing concoctions of scrambled golden runes.'),
+    LevelConfig(10, 'Cosmic Nebula', 'Cosmic', 'Stardust particles align to form celestial mysteries.'),
+    LevelConfig(11, 'Shadow Realm', 'Illusion', 'Darkness parts when you reveal the true words of the mist.'),
+    LevelConfig(12, 'Grand Sanctuary', 'Mastery', 'The ultimate test of letters in the myst.'),
+  ];
+
+  /// Get static list of levels dynamically constructed with 6-8 words pulled from word database
+  static List<Level> get levels {
+    return storyLevelConfigs.map((config) {
+      return getLevelForConfig(config);
+    }).toList();
+  }
+
+  /// Creates a Level instance with 6 to 8 words randomly pulled from the word database
+  static Level getLevelForConfig(LevelConfig config, [int? seed]) {
+    final rand = seed != null ? Random(seed) : Random();
+    final words = getRandomWordsForLevel(
+      category: config.category,
+      random: rand,
+    );
+
+    return Level(
+      id: config.id,
+      name: config.name,
+      category: config.category,
+      words: words,
+      description: config.description,
+    );
+  }
+
+  /// Get random endless level with 6-8 words pulled from word database
+  static Level getRandomLevel(int id) {
+    final words = getRandomWordsForLevel();
     return Level(
       id: id,
       name: 'Mystic Challenge #$id',
       category: 'Endless Myst',
-      words: selectedWords.toList(),
-      description: 'A newly summoned combination of $wordCount secret runes!',
+      words: words,
+      description: 'A newly summoned puzzle of ${words.length} secret words!',
     );
   }
+}
+
+class LevelConfig {
+  final int id;
+  final String name;
+  final String category;
+  final String description;
+
+  const LevelConfig(this.id, this.name, this.category, this.description);
 }
