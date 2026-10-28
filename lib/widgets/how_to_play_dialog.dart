@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class HowToPlayDialog extends StatelessWidget {
   const HowToPlayDialog({super.key});
@@ -6,10 +7,10 @@ class HowToPlayDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.bgDeep,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF7B2CBF), width: 1.5),
+        side: const BorderSide(color: AppColors.purpleAccent, width: 1.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -21,7 +22,7 @@ class HowToPlayDialog extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.auto_awesome,
-                  color: Color(0xFFFFD700),
+                  color: AppColors.gold,
                   size: 28,
                 ),
                 const SizedBox(width: 10),
@@ -40,10 +41,10 @@ class HowToPlayDialog extends StatelessWidget {
                 )
               ],
             ),
-            const Divider(color: Color(0xFF3C096C), height: 24),
+            const Divider(color: AppColors.purpleDark, height: 24),
             _buildRuleItem(
               icon: Icons.grid_view_rounded,
-              color: const Color(0xFFE0AAFF),
+              color: AppColors.purpleLight,
               title: 'Every Letter Counts!',
               description:
                   'All the letters displayed on screen belong to one of the secret words. There are no junk or filler letters!',
@@ -51,7 +52,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.spellcheck,
-              color: const Color(0xFF74C69D),
+              color: AppColors.emerald,
               title: 'Form Hidden Words',
               description:
                   'Tap letters from the scramble pool to form a word, then press SUBMIT to uncover it.',
@@ -59,7 +60,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.lightbulb,
-              color: const Color(0xFFFFD700),
+              color: AppColors.gold,
               title: 'Use Hints & Shuffles',
               description:
                   'Stuck? Tap Shuffle to reorganize the letter pool or use a Hint to reveal a letter slot!',
@@ -67,7 +68,7 @@ class HowToPlayDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.workspace_premium,
-              color: const Color(0xFFFF9E00),
+              color: AppColors.amber,
               title: 'Complete the Myst',
               description:
                   'When all target words are solved, 100% of the visible letter tiles will be consumed and the puzzle is solved!',
@@ -77,14 +78,7 @@ class HowToPlayDialog extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B2CBF),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                style: AppTheme.primaryButtonStyle,
                 child: const Text(
                   'GOT IT! LET\'S PLAY',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),

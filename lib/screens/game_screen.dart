@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/letter_tile.dart';
 import '../models/level.dart';
+import '../theme/app_theme.dart';
 import '../widgets/guess_tray.dart';
 import '../widgets/how_to_play_dialog.dart';
 import '../widgets/letter_tile_widget.dart';
@@ -297,9 +298,9 @@ class _GameScreenState extends State<GameScreen> {
         _scrambleTiles.where((t) => !t.isUsed).length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF190933),
+        backgroundColor: AppColors.bgSurface,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,7 +316,7 @@ class _GameScreenState extends State<GameScreen> {
             Text(
               'Chapter: ${_currentLevel.category}',
               style: const TextStyle(
-                color: Color(0xFFE0AAFF),
+                color: AppColors.purpleLight,
                 fontSize: 12,
               ),
             ),
@@ -327,14 +328,14 @@ class _GameScreenState extends State<GameScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF240046),
+                color: AppColors.surfaceDark,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF5A189A)),
+                border: Border.all(color: AppColors.purplePrimary),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.timer_outlined,
-                      color: Color(0xFFFFD700), size: 16),
+                      color: AppColors.gold, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '${(_timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timeInSeconds % 60).toString().padLeft(2, '0')}',
@@ -356,7 +357,7 @@ class _GameScreenState extends State<GameScreen> {
               );
             },
             icon: const Icon(Icons.help_outline_rounded,
-                color: Color(0xFFE0AAFF)),
+                color: AppColors.purpleLight),
           ),
         ],
       ),
@@ -369,7 +370,7 @@ class _GameScreenState extends State<GameScreen> {
               padding:
                   const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
               decoration: const BoxDecoration(
-                color: Color(0xFF190933),
+                color: AppColors.bgSurface,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -401,7 +402,7 @@ class _GameScreenState extends State<GameScreen> {
                   Text(
                     'Unsolved letters: $remainingLetters / ${_currentLevel.totalLetters}',
                     style: const TextStyle(
-                      color: Color(0xFFE0AAFF),
+                      color: AppColors.purpleLight,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -409,7 +410,7 @@ class _GameScreenState extends State<GameScreen> {
                   Text(
                     'Score: $_score',
                     style: const TextStyle(
-                      color: Color(0xFFFFD700),
+                      color: AppColors.gold,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -426,9 +427,9 @@ class _GameScreenState extends State<GameScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF140032).withAlpha(180),
+                  color: AppColors.bgContainer.withAlpha(180),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF240046)),
+                  border: Border.all(color: AppColors.surfaceDark),
                 ),
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),

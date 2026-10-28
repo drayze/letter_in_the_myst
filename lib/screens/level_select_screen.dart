@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/levels_data.dart';
 import '../models/level.dart';
+import '../theme/app_theme.dart';
 import '../widgets/how_to_play_dialog.dart';
 import 'game_screen.dart';
 
@@ -38,13 +39,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.bgDeep,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF190933),
+        backgroundColor: AppColors.bgSurface,
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 22),
+            Icon(Icons.auto_awesome, color: AppColors.gold, size: 22),
             SizedBox(width: 8),
             Text(
               'Letters in the Myst',
@@ -64,7 +65,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                 builder: (context) => const HowToPlayDialog(),
               );
             },
-            icon: const Icon(Icons.help_outline_rounded, color: Color(0xFFE0AAFF)),
+            icon: const Icon(Icons.help_outline_rounded, color: AppColors.purpleLight),
             tooltip: 'How to play',
           ),
         ],
@@ -76,22 +77,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             child: Container(
               margin: const EdgeInsets.all(16.0),
               padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3C096C), Color(0xFF5A189A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFF7B2CBF)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF5A189A).withAlpha(120),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
+              decoration: AppTheme.bannerDecoration,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -100,20 +86,16 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFD700).withAlpha(50),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFFD700)),
-                        ),
+                        decoration: AppTheme.badgeDecoration(color: AppColors.gold),
                         child: const Row(
                           children: [
                             Icon(Icons.all_inclusive,
-                                color: Color(0xFFFFD700), size: 16),
+                                color: AppColors.gold, size: 16),
                             SizedBox(width: 4),
                             Text(
                               'ENDLESS MYST',
                               style: TextStyle(
-                                color: Color(0xFFFFD700),
+                                color: AppColors.gold,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -161,15 +143,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         'PLAY RANDOM MYST PUZZLE',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF74C69D),
-                        foregroundColor: const Color(0xFF081C15),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 4,
-                      ),
+                      style: AppTheme.emeraldButtonStyle,
                     ),
                   ),
                 ],
@@ -184,7 +158,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
               child: Text(
                 'Story Chapters',
                 style: TextStyle(
-                  color: Color(0xFFE0AAFF),
+                  color: AppColors.purpleLight,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -214,20 +188,20 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: isCompleted
-                            ? const Color(0xFF1B4332)
-                            : const Color(0xFF190933),
+                            ? AppColors.successBg
+                            : AppColors.bgSurface,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
                           color: isCompleted
-                              ? const Color(0xFF52B788)
-                              : const Color(0xFF3C096C),
+                              ? AppColors.successBorder
+                              : AppColors.purpleDark,
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isCompleted
-                                ? const Color(0xFF52B788).withAlpha(60)
-                                : const Color(0xFF240046).withAlpha(100),
+                                ? AppColors.successBorder.withAlpha(60)
+                                : AppColors.surfaceDark.withAlpha(100),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -244,13 +218,13 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF5A189A).withAlpha(100),
+                                  color: AppColors.purplePrimary.withAlpha(100),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   'Level ${level.id}',
                                   style: const TextStyle(
-                                    color: Color(0xFFE0AAFF),
+                                    color: AppColors.purpleLight,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -259,7 +233,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                               if (isCompleted)
                                 const Icon(
                                   Icons.check_circle,
-                                  color: Color(0xFF74C69D),
+                                  color: AppColors.emerald,
                                   size: 20,
                                 )
                               else
@@ -284,7 +258,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                             children: [
                               const Icon(
                                 Icons.segment_rounded,
-                                color: Color(0xFFFF9E00),
+                                color: AppColors.amber,
                                 size: 14,
                               ),
                               const SizedBox(width: 4),

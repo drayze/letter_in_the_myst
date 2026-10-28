@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/level.dart';
+import '../theme/app_theme.dart';
 
 class WordSlotWidget extends StatelessWidget {
   final TargetWord targetWord;
@@ -21,17 +22,17 @@ class WordSlotWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
       decoration: BoxDecoration(
         color: isSolved
-            ? const Color(0xFF1B4332).withAlpha(200)
-            : const Color(0xFF10002B).withAlpha(160),
+            ? AppColors.successBg.withAlpha(200)
+            : AppColors.bgDeep.withAlpha(160),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isSolved ? const Color(0xFF52B788) : const Color(0xFF3C096C),
+          color: isSolved ? AppColors.successBorder : AppColors.purpleDark,
           width: isSolved ? 2.0 : 1.0,
         ),
         boxShadow: [
           if (isSolved)
             BoxShadow(
-              color: const Color(0xFF52B788).withAlpha(100),
+              color: AppColors.successBorder.withAlpha(100),
               blurRadius: 10,
               spreadRadius: 1,
             ),
@@ -46,23 +47,23 @@ class WordSlotWidget extends StatelessWidget {
             final isRevealedByHint = revealedIndices.contains(index);
 
             String displayChar = '';
-            Color boxBgColor = const Color(0xFF240046);
-            Color boxBorderColor = const Color(0xFF5A189A);
-            Color charColor = const Color(0xFFE0AAFF);
+            Color boxBgColor = AppColors.surfaceDark;
+            Color boxBorderColor = AppColors.purplePrimary;
+            Color charColor = AppColors.purpleLight;
 
             if (isSolved) {
               displayChar = char;
-              boxBgColor = const Color(0xFF2D6A4F);
-              boxBorderColor = const Color(0xFF74C69D);
-              charColor = const Color(0xFFD8F3DC);
+              boxBgColor = AppColors.successContainer;
+              boxBorderColor = AppColors.emerald;
+              charColor = AppColors.successLight;
             } else if (isRevealedByHint) {
               displayChar = char;
-              boxBgColor = const Color(0xFF5C4000);
-              boxBorderColor = const Color(0xFFFFD700);
-              charColor = const Color(0xFFFFE57F);
+              boxBgColor = AppColors.goldBgMedium;
+              boxBorderColor = AppColors.gold;
+              charColor = AppColors.goldLight;
             } else {
               displayChar = '•'; // Mystery bullet point
-              charColor = const Color(0xFF7B2CBF);
+              charColor = AppColors.purpleAccent;
             }
 
             return Container(
@@ -90,7 +91,7 @@ class WordSlotWidget extends StatelessWidget {
             const SizedBox(width: 8),
             const Icon(
               Icons.check_circle_rounded,
-              color: Color(0xFF74C69D),
+              color: AppColors.emerald,
               size: 20,
             ),
           ],

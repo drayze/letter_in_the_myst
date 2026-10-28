@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/level.dart';
+import '../theme/app_theme.dart';
 
 class VictoryDialog extends StatelessWidget {
   final Level level;
@@ -25,10 +26,10 @@ class VictoryDialog extends StatelessWidget {
         '${(timeInSeconds ~/ 60).toString().padLeft(2, '0')}:${(timeInSeconds % 60).toString().padLeft(2, '0')}';
 
     return Dialog(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.bgDeep,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF74C69D), width: 2),
+        side: const BorderSide(color: AppColors.emerald, width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -39,19 +40,19 @@ class VictoryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF2D6A4F).withAlpha(100),
+                color: AppColors.successContainer.withAlpha(100),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF74C69D), width: 2),
+                border: Border.all(color: AppColors.emerald, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF74C69D).withAlpha(150),
+                    color: AppColors.emerald.withAlpha(150),
                     blurRadius: 16,
                   ),
                 ],
               ),
               child: const Icon(
                 Icons.auto_awesome,
-                color: Color(0xFF74C69D),
+                color: AppColors.emerald,
                 size: 40,
               ),
             ),
@@ -60,7 +61,7 @@ class VictoryDialog extends StatelessWidget {
             const Text(
               'MYST SOLVED!',
               style: TextStyle(
-                color: Color(0xFFD8F3DC),
+                color: AppColors.successLight,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.5,
@@ -71,7 +72,7 @@ class VictoryDialog extends StatelessWidget {
             Text(
               level.name,
               style: const TextStyle(
-                color: Color(0xFFE0AAFF),
+                color: AppColors.purpleLight,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -82,9 +83,9 @@ class VictoryDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF190933),
+                color: AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF3C096C)),
+                border: Border.all(color: AppColors.purpleDark),
               ),
               child: Column(
                 children: [
@@ -97,7 +98,7 @@ class VictoryDialog extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
-                  const Divider(color: Color(0xFF240046), height: 20),
+                  const Divider(color: AppColors.surfaceDark, height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -118,8 +119,8 @@ class VictoryDialog extends StatelessWidget {
                   icon: const Icon(Icons.replay_rounded),
                   tooltip: 'Replay Level',
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF240046),
-                    foregroundColor: const Color(0xFFE0AAFF),
+                    backgroundColor: AppColors.surfaceDark,
+                    foregroundColor: AppColors.purpleLight,
                     padding: const EdgeInsets.all(12),
                   ),
                 ),
@@ -129,8 +130,8 @@ class VictoryDialog extends StatelessWidget {
                   icon: const Icon(Icons.grid_view_rounded),
                   tooltip: 'Level Select',
                   style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF240046),
-                    foregroundColor: const Color(0xFFE0AAFF),
+                    backgroundColor: AppColors.surfaceDark,
+                    foregroundColor: AppColors.purpleLight,
                     padding: const EdgeInsets.all(12),
                   ),
                 ),
@@ -140,15 +141,7 @@ class VictoryDialog extends StatelessWidget {
                     onPressed: onNextLevel,
                     icon: const Icon(Icons.arrow_forward_rounded),
                     label: const Text('NEXT LEVEL'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF74C69D),
-                      foregroundColor: const Color(0xFF081C15),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                    ),
+                    style: AppTheme.emeraldButtonStyle,
                   ),
                 ),
               ],
@@ -165,7 +158,7 @@ class VictoryDialog extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: const Color(0xFFFFD700)),
+            Icon(icon, size: 16, color: AppColors.gold),
             const SizedBox(width: 4),
             Text(
               label,

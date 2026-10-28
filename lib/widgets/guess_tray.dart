@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
+import '../theme/app_theme.dart';
 
 class GuessTray extends StatelessWidget {
   final List<LetterTile> selectedTiles;
@@ -31,15 +32,15 @@ class GuessTray extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF190933).withAlpha(220),
+        color: AppColors.bgSurface.withAlpha(220),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: canSubmit ? const Color(0xFF9D4EDD) : const Color(0xFF3C096C),
+          color: canSubmit ? AppColors.purpleBright : AppColors.purpleDark,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF240046).withAlpha(150),
+            color: AppColors.surfaceDark.withAlpha(150),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -55,7 +56,7 @@ class GuessTray extends StatelessWidget {
               child: AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: const TextStyle(
-                  color: Color(0xFFFF9E00),
+                  color: AppColors.amber,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
@@ -69,16 +70,16 @@ class GuessTray extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 52),
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             decoration: BoxDecoration(
-              color: const Color(0xFF10002B),
+              color: AppColors.bgDeep,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF240046)),
+              border: Border.all(color: AppColors.surfaceDark),
             ),
             child: selectedTiles.isEmpty
                 ? const Center(
                     child: Text(
                       'Tap letters below to unscramble a word',
                       style: TextStyle(
-                        color: Color(0xFF7B2CBF),
+                        color: AppColors.purpleAccent,
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
                       ),
@@ -96,12 +97,12 @@ class GuessTray extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12.0, vertical: 8.0),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF5A189A),
+                            color: AppColors.purplePrimary,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF9D4EDD)),
+                            border: Border.all(color: AppColors.purpleBright),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF9D4EDD).withAlpha(100),
+                                color: AppColors.purpleBright.withAlpha(100),
                                 blurRadius: 6,
                               )
                             ],
@@ -132,9 +133,9 @@ class GuessTray extends StatelessWidget {
                 icon: const Icon(Icons.backspace_outlined),
                 tooltip: 'Clear selection',
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF240046),
-                  foregroundColor: const Color(0xFFE0AAFF),
-                  disabledBackgroundColor: const Color(0xFF10002B),
+                  backgroundColor: AppColors.surfaceDark,
+                  foregroundColor: AppColors.purpleLight,
+                  disabledBackgroundColor: AppColors.bgDeep,
                   disabledForegroundColor: Colors.white24,
                 ),
               ),
@@ -145,8 +146,8 @@ class GuessTray extends StatelessWidget {
                 icon: const Icon(Icons.shuffle_rounded),
                 tooltip: 'Shuffle board',
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF240046),
-                  foregroundColor: const Color(0xFFE0AAFF),
+                  backgroundColor: AppColors.surfaceDark,
+                  foregroundColor: AppColors.purpleLight,
                 ),
               ),
 
@@ -156,9 +157,9 @@ class GuessTray extends StatelessWidget {
                 icon: const Icon(Icons.lightbulb_outline_rounded, size: 18),
                 label: Text('Hint ($hintsRemaining)'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B2CBF),
+                  backgroundColor: AppColors.purpleAccent,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFF240046),
+                  disabledBackgroundColor: AppColors.surfaceDark,
                   disabledForegroundColor: Colors.white24,
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12.0, vertical: 8.0),
@@ -174,12 +175,12 @@ class GuessTray extends StatelessWidget {
                 icon: const Icon(Icons.check_rounded, size: 20),
                 label: const Text('SUBMIT'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF74C69D),
-                  foregroundColor: const Color(0xFF081C15),
-                  disabledBackgroundColor: const Color(0xFF240046),
+                  backgroundColor: AppColors.emerald,
+                  foregroundColor: AppColors.emeraldDark,
+                  disabledBackgroundColor: AppColors.surfaceDark,
                   disabledForegroundColor: Colors.white24,
                   elevation: canSubmit ? 6 : 0,
-                  shadowColor: const Color(0xFF74C69D).withAlpha(150),
+                  shadowColor: AppColors.emerald.withAlpha(150),
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 8.0),
                   shape: RoundedRectangleBorder(

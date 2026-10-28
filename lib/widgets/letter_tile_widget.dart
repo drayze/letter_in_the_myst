@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/letter_tile.dart';
+import '../theme/app_theme.dart';
 
 class LetterTileWidget extends StatelessWidget {
   final LetterTile tile;
@@ -22,47 +23,47 @@ class LetterTileWidget extends StatelessWidget {
 
     if (tile.isUsed) {
       // Solved state
-      bgColor = const Color(0xFF1E3A2B);
-      borderColor = const Color(0xFF4CAF50);
-      textColor = const Color(0xFF81C784);
+      bgColor = AppColors.tileSolvedBg;
+      borderColor = AppColors.tileSolvedBorder;
+      textColor = AppColors.tileSolvedText;
       boxShadow = [
         BoxShadow(
-          color: const Color(0xFF4CAF50).withAlpha(100),
+          color: AppColors.tileSolvedBorder.withAlpha(100),
           blurRadius: 8,
           spreadRadius: 1,
         ),
       ];
     } else if (tile.isSelected) {
       // Currently in guess tray / selected state
-      bgColor = const Color(0xFF311B92);
-      borderColor = const Color(0xFF7C4DFF);
+      bgColor = AppColors.tileSelectedBg;
+      borderColor = AppColors.tileSelectedBorder;
       textColor = Colors.white70;
       boxShadow = [
         BoxShadow(
-          color: const Color(0xFF7C4DFF).withAlpha(80),
+          color: AppColors.tileSelectedBorder.withAlpha(80),
           blurRadius: 6,
         ),
       ];
     } else if (tile.isHinted) {
       // Hinted state
-      bgColor = const Color(0xFF4A3B00);
-      borderColor = const Color(0xFFFFD700);
-      textColor = const Color(0xFFFFE57F);
+      bgColor = AppColors.goldBgDark;
+      borderColor = AppColors.gold;
+      textColor = AppColors.goldLight;
       boxShadow = [
         BoxShadow(
-          color: const Color(0xFFFFD700).withAlpha(150),
+          color: AppColors.gold.withAlpha(150),
           blurRadius: 12,
           spreadRadius: 2,
         ),
       ];
     } else {
       // Normal available state
-      bgColor = const Color(0xFF231942);
-      borderColor = const Color(0xFF5E548E);
-      textColor = const Color(0xFFE0AAFF);
+      bgColor = AppColors.tileNormalBg;
+      borderColor = AppColors.tileNormalBorder;
+      textColor = AppColors.purpleLight;
       boxShadow = [
         BoxShadow(
-          color: const Color(0xFF5E548E).withAlpha(90),
+          color: AppColors.tileNormalBorder.withAlpha(90),
           blurRadius: 6,
           offset: const Offset(0, 3),
         ),
@@ -77,7 +78,7 @@ class LetterTileWidget extends StatelessWidget {
         child: InkWell(
           onTap: (tile.isUsed || tile.isSelected) ? null : onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: const Color(0xFF9D4EDD).withAlpha(100),
+          splashColor: AppColors.purpleBright.withAlpha(100),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOutCubic,
