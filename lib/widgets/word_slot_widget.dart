@@ -18,13 +18,13 @@ class WordSlotWidget extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 350),
-      margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+      margin: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
       decoration: BoxDecoration(
         color: isSolved
             ? AppColors.successBg.withAlpha(200)
             : AppColors.bgDeep.withAlpha(160),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isSolved ? AppColors.successBorder : AppColors.purpleDark,
           width: isSolved ? 2.0 : 1.0,
@@ -33,7 +33,7 @@ class WordSlotWidget extends StatelessWidget {
           if (isSolved)
             BoxShadow(
               color: AppColors.successBorder.withAlpha(100),
-              blurRadius: 10,
+              blurRadius: 8,
               spreadRadius: 1,
             ),
         ],
@@ -67,12 +67,12 @@ class WordSlotWidget extends StatelessWidget {
             }
 
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 3.0),
-              width: 34,
-              height: 38,
+              margin: const EdgeInsets.symmetric(horizontal: 2.0),
+              width: 30,
+              height: 34,
               decoration: BoxDecoration(
                 color: boxBgColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: boxBorderColor),
               ),
               child: Center(
@@ -80,7 +80,7 @@ class WordSlotWidget extends StatelessWidget {
                   displayChar,
                   style: TextStyle(
                     color: charColor,
-                    fontSize: isSolved || isRevealedByHint ? 18 : 14,
+                    fontSize: isSolved || isRevealedByHint ? 16 : 13,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -88,11 +88,11 @@ class WordSlotWidget extends StatelessWidget {
             );
           }),
           if (isSolved) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             const Icon(
               Icons.check_circle_rounded,
               color: AppColors.emerald,
-              size: 20,
+              size: 18,
             ),
           ],
         ],

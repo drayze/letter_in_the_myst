@@ -27,7 +27,7 @@ class _GameScreenState extends State<GameScreen> {
   final List<LetterTile> _selectedTiles = [];
   final Map<int, Set<int>> _revealedIndices = {};
 
-  int _hintsRemaining = 3;
+  int _hintsRemaining = 5;
   int _score = 0;
   int _timeInSeconds = 0;
   Timer? _timer;
@@ -52,7 +52,7 @@ class _GameScreenState extends State<GameScreen> {
     _isLevelCompleted = false;
     _timeInSeconds = 0;
     _score = 0;
-    _hintsRemaining = 3;
+    _hintsRemaining = 5;
     _feedbackMessage = null;
     _selectedTiles.clear();
     _revealedIndices.clear();
@@ -367,8 +367,9 @@ class _GameScreenState extends State<GameScreen> {
             // Secret Words Display Panel
             Container(
               width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 180),
               padding:
-                  const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
               decoration: const BoxDecoration(
                 color: AppColors.bgSurface,
                 borderRadius: BorderRadius.only(
@@ -377,6 +378,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ),
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 child: Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 4.0,
@@ -436,12 +438,12 @@ class _GameScreenState extends State<GameScreen> {
                   child: Center(
                     child: Wrap(
                       alignment: WrapAlignment.center,
-                      spacing: 10.0,
-                      runSpacing: 10.0,
+                      spacing: 8.0,
+                      runSpacing: 8.0,
                       children: _scrambleTiles.map((tile) {
                         return LetterTileWidget(
                           tile: tile,
-                          size: 52.0,
+                          size: 48.0,
                           onTap: () => _onTileTap(tile),
                         );
                       }).toList(),
