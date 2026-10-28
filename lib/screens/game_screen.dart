@@ -272,7 +272,7 @@ class _GameScreenState extends State<GameScreen> {
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
-      builder: (context) => FlyingWordWidget(
+      builder: (context) => FlyingTileWidget(
         word: word,
         startOffset: startOffset,
         targetOffset: targetOffset,
