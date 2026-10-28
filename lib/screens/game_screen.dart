@@ -29,10 +29,6 @@ class _GameScreenState extends State<GameScreen>
   late List<TargetWord> _activeBoardWords;
   late List<TargetWord> _wordQueue;
   late List<LetterTile> _allTiles;
-  late List<List<LetterTile?>> _grid;
-
-  int _rows = 4;
-  int _cols = 4;
 
   final GlobalKey _screenStackKey = GlobalKey();
   final GlobalKey _wheelKey = GlobalKey();
@@ -122,8 +118,8 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    // 2. Build spacious 2D grid matrix for active board words
-    _buildSpaciousGrid();
+    // 2. Build initial letter tiles for active board words
+    _buildInitialTiles();
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -135,95 +131,59 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
-  void _buildSpaciousGrid() {
-    final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
-    final totalLettersNeeded =
-        activeUnsolved.fold(0, (sum, w) => sum + w.word.length);
-
-    if (totalLettersNeeded <= 12) {
-      _rows = 4;
-      _cols = 3;
-    } else if (totalLettersNeeded <= 16) {
-      _rows = 4;
-      _cols = 4;
-    } else if (totalLettersNeeded <= 20) {
-      _rows = 5;
-      _cols = 4;
-    } else if (totalLettersNeeded <= 25) {
-      _rows = 5;
-      _cols = 5;
-    } else {
-      _rows = 6;
-      _cols = 5;
-    }
-
-    _grid = List.generate(_rows, (_) => List.generate(_cols, (_) => null));
+  void _buildInitialTiles() {
     _allTiles = [];
-
     int tileCounter = 0;
     final rand = Random();
 
+    final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
     activeUnsolved.shuffle(rand);
 
-    // Place target words along contiguous adjacent slots in grid
     for (var target in activeUnsolved) {
       final String word = target.word;
-      bool placed = false;
+      final chars = rand.nextBool()
+          ? word.split('')
+          : word.split('').reversed.toList();
 
-      for (int attempt = 0; attempt < 100; attempt++) {
-        final startR = rand.nextInt(_rows);
-        final startC = rand.nextInt(_cols);
-
-        if (_grid[startR][startC] != null) continue;
-
-        final path = _findGridSnakePath(startR, startC, word.length);
-        if (path != null && path.length == word.length) {
-          final chars = rand.nextBool()
-              ? word.split('')
-              : word.split('').reversed.toList();
-
-          for (int i = 0; i < chars.length; i++) {
-            final pt = path[i];
-            final tile = LetterTile(
-              id: 'tile_${tileCounter++}_${chars[i]}',
-              letter: chars[i],
-              row: pt.item1,
-              col: pt.item2,
-            );
-            _grid[pt.item1][pt.item2] = tile;
-            _allTiles.add(tile);
-          }
-          placed = true;
-          break;
-        }
+      for (int i = 0; i < chars.length; i++) {
+        _allTiles.add(
+          LetterTile(
+            id: 'tile_${tileCounter++}_${chars[i]}',
+            letter: chars[i],
+          ),
+        );
       }
+    }
 
-      if (!placed) {
-        // Fallback: Fill open adjacent grid slots
-        for (int r = 0; r < _rows; r++) {
-          for (int c = 0; c < _cols; c++) {
-            if (_grid[r][c] == null) {
-              final path = _findOpenGridSlots(r, c, word.length);
-              for (int i = 0; i < path.length; i++) {
-                final pt = path[i];
-                if (i < word.length) {
-                  final tile = LetterTile(
-                    id: 'tile_${tileCounter++}_${word[i]}',
-                    letter: word[i],
-                    row: pt.item1,
-                    col: pt.item2,
-                  );
-                  _grid[pt.item1][pt.item2] = tile;
-                  _allTiles.add(tile);
-                }
-              }
-              placed = true;
-              break;
-            }
-          }
-          if (placed) break;
-        }
-      }
+    _arrangeTilesOnCircle();
+  }
+
+  void _arrangeTilesOnCircle() {
+    if (_boardWidth <= 0 || _boardHeight <= 0) return;
+
+    final activeTiles = _allTiles.where((t) => !t.isUsed).toList();
+    final int count = activeTiles.length;
+    if (count == 0) return;
+
+    final double size = min(_boardWidth, _boardHeight);
+    final double centerX = _boardWidth / 2;
+    final double centerY = _boardHeight / 2;
+    final double radius = (size / 2) * 0.68;
+
+    if (count > 1) {
+      final double arcDistance = (2 * pi * radius) / count;
+      _currentTileSize = (arcDistance * 0.72).clamp(38.0, 56.0);
+    } else {
+      _currentTileSize = 52.0;
+    }
+
+    final double angleStep = (2 * pi) / count;
+    for (int i = 0; i < count; i++) {
+      final double angle = -pi / 2 + (i * angleStep);
+      activeTiles[i].centerPosition = Offset(
+        centerX + radius * cos(angle),
+        centerY + radius * sin(angle),
+      );
     }
   }
 
@@ -235,173 +195,20 @@ class _GameScreenState extends State<GameScreen>
 
     final String word = nextTarget.word;
     final rand = Random();
-
-    List<Tuple2>? path;
-    for (int attempt = 0; attempt < 50; attempt++) {
-      final startR = rand.nextInt(_rows);
-      final startC = rand.nextInt(_cols);
-      if (_isSlotOpenForReplenishment(startR, startC)) {
-        path = _findOpenReplenishmentPath(startR, startC, word.length);
-        if (path != null && path.length == word.length) break;
-      }
-    }
-
-    path ??= _findAllOpenReplenishmentSlots(word.length);
-
     final chars = rand.nextBool()
         ? word.split('')
         : word.split('').reversed.toList();
 
     int tileCounter = _allTiles.length;
-    for (int i = 0; i < path.length && i < chars.length; i++) {
-      final pt = path[i];
-      final r = pt.item1;
-      final c = pt.item2;
-
+    for (int i = 0; i < chars.length; i++) {
       final tile = LetterTile(
         id: 'tile_${tileCounter++}_${chars[i]}',
         letter: chars[i],
-        row: r,
-        col: c,
       );
-
-      if (_boardWidth > 0 && _boardHeight > 0) {
-        final cellW = _boardWidth / _cols;
-        final cellH = _boardHeight / _rows;
-        tile.centerPosition = Offset(
-          (c + 0.5) * cellW,
-          (r + 0.5) * cellH,
-        );
-      }
-
-      _grid[r][c] = tile;
       _allTiles.add(tile);
     }
 
-    //_feedbackMessage = '✨ Summoned "${nextTarget.word}" into the grid!';
-  }
-
-  bool _isSlotOpenForReplenishment(int r, int c) {
-    final existing = _grid[r][c];
-    return existing == null || existing.isUsed;
-  }
-
-  List<Tuple2>? _findOpenReplenishmentPath(int startR, int startC, int length) {
-    final List<Tuple2> path = [Tuple2(startR, startC)];
-    final Set<String> visited = {'$startR,$startC'};
-    final rand = Random();
-
-    final dirs = [
-      const Tuple2(-1, 0),
-      const Tuple2(1, 0),
-      const Tuple2(0, -1),
-      const Tuple2(0, 1),
-      const Tuple2(-1, -1),
-      const Tuple2(-1, 1),
-      const Tuple2(1, -1),
-      const Tuple2(1, 1),
-    ];
-
-    bool dfs(int currR, int currC) {
-      if (path.length == length) return true;
-
-      dirs.shuffle(rand);
-      for (var d in dirs) {
-        final nr = currR + d.item1;
-        final nc = currC + d.item2;
-
-        if (nr >= 0 &&
-            nr < _rows &&
-            nc >= 0 &&
-            nc < _cols &&
-            _isSlotOpenForReplenishment(nr, nc) &&
-            !visited.contains('$nr,$nc')) {
-          visited.add('$nr,$nc');
-          path.add(Tuple2(nr, nc));
-
-          if (dfs(nr, nc)) return true;
-
-          path.removeLast();
-          visited.remove('$nr,$nc');
-        }
-      }
-      return false;
-    }
-
-    if (dfs(startR, startC)) return path;
-    return null;
-  }
-
-  List<Tuple2> _findAllOpenReplenishmentSlots(int count) {
-    final List<Tuple2> result = [];
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        if (_isSlotOpenForReplenishment(r, c)) {
-          result.add(Tuple2(r, c));
-          if (result.length == count) return result;
-        }
-      }
-    }
-    return result;
-  }
-
-  List<Tuple2>? _findGridSnakePath(int startR, int startC, int length) {
-    final List<Tuple2> path = [Tuple2(startR, startC)];
-    final Set<String> visited = {'$startR,$startC'};
-    final rand = Random();
-
-    final dirs = [
-      const Tuple2(-1, 0),
-      const Tuple2(1, 0),
-      const Tuple2(0, -1),
-      const Tuple2(0, 1),
-      const Tuple2(-1, -1),
-      const Tuple2(-1, 1),
-      const Tuple2(1, -1),
-      const Tuple2(1, 1),
-    ];
-
-    bool dfs(int currR, int currC) {
-      if (path.length == length) return true;
-
-      dirs.shuffle(rand);
-      for (var d in dirs) {
-        final nr = currR + d.item1;
-        final nc = currC + d.item2;
-
-        if (nr >= 0 &&
-            nr < _rows &&
-            nc >= 0 &&
-            nc < _cols &&
-            _grid[nr][nc] == null &&
-            !visited.contains('$nr,$nc')) {
-          visited.add('$nr,$nc');
-          path.add(Tuple2(nr, nc));
-
-          if (dfs(nr, nc)) return true;
-
-          path.removeLast();
-          visited.remove('$nr,$nc');
-        }
-      }
-      return false;
-    }
-
-    if (dfs(startR, startC)) return path;
-    return null;
-  }
-
-  List<Tuple2> _findOpenGridSlots(int startR, int startC, int count) {
-    final List<Tuple2> result = [];
-    for (int r = 0; r < _rows; r++) {
-      for (int c = 0; c < _cols; c++) {
-        if (_grid[r][c] == null) {
-          result.add(Tuple2(r, c));
-          if (result.length == count) return result;
-        }
-      }
-    }
-    return result;
+    _arrangeTilesOnCircle();
   }
 
   void _shuffleWheel() {
@@ -411,8 +218,18 @@ class _GameScreenState extends State<GameScreen>
       }
       _selectedTiles.clear();
 
-      _buildSpaciousGrid();
-      _feedbackMessage = 'Grid rearranged!';
+      final active = _allTiles.where((t) => !t.isUsed).toList();
+      active.shuffle(Random());
+
+      int activeIdx = 0;
+      for (int i = 0; i < _allTiles.length; i++) {
+        if (!_allTiles[i].isUsed) {
+          _allTiles[i] = active[activeIdx++];
+        }
+      }
+
+      _arrangeTilesOnCircle();
+      _feedbackMessage = 'Wheel rearranged!';
     });
   }
 
@@ -436,16 +253,7 @@ class _GameScreenState extends State<GameScreen>
     setState(() {
       _currentTouchPoint = localPos;
 
-      if (_boardWidth > 0 && _boardHeight > 0) {
-        final cellW = _boardWidth / _cols;
-        final cellH = _boardHeight / _rows;
-        for (var tile in _allTiles) {
-          tile.centerPosition ??= Offset(
-            (tile.col + 0.5) * cellW,
-            (tile.row + 0.5) * cellH,
-          );
-        }
-      }
+      _arrangeTilesOnCircle();
 
       LetterTile? touchedTile;
       double minDistance = max(_currentTileSize * 0.95, 36.0);
@@ -501,7 +309,8 @@ class _GameScreenState extends State<GameScreen>
       for (int i = 0; i < _selectedTiles.length; i++) {
         final tile = _selectedTiles[i];
         final startPos = _getWheelTileCenterInScreen(tile) ?? Offset.zero;
-        final targetPos = _getSlotBoxCenterInScreen(matchedWordIdx, i) ?? startPos;
+        final targetPos =
+            _getSlotBoxCenterInScreen(matchedWordIdx, i) ?? startPos;
 
         _activeFlyingTiles.add(
           FlyingTileData(
@@ -531,6 +340,8 @@ class _GameScreenState extends State<GameScreen>
           if (_wordQueue.isNotEmpty) {
             _replenishWordFromQueue();
           }
+
+          _arrangeTilesOnCircle();
 
           if (_targetWords.every((w) => w.isSolved)) {
             _handleLevelCompleted();
@@ -562,9 +373,12 @@ class _GameScreenState extends State<GameScreen>
     final wheelContext = _wheelKey.currentContext;
     final screenContext = _screenStackKey.currentContext;
 
-    if (wheelContext != null && screenContext != null && tile.centerPosition != null) {
+    if (wheelContext != null &&
+        screenContext != null &&
+        tile.centerPosition != null) {
       final RenderBox wheelBox = wheelContext.findRenderObject() as RenderBox;
-      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
+      final RenderBox screenBox =
+          screenContext.findRenderObject() as RenderBox;
       final Offset wheelPosInScreen =
           wheelBox.localToGlobal(Offset.zero, ancestor: screenBox);
       return wheelPosInScreen + tile.centerPosition!;
@@ -579,7 +393,8 @@ class _GameScreenState extends State<GameScreen>
 
     if (context != null && screenContext != null) {
       final RenderBox box = context.findRenderObject() as RenderBox;
-      final RenderBox screenBox = screenContext.findRenderObject() as RenderBox;
+      final RenderBox screenBox =
+          screenContext.findRenderObject() as RenderBox;
       final Offset globalBoxPos =
           box.localToGlobal(Offset.zero, ancestor: screenBox);
       return globalBoxPos + Offset(box.size.width / 2, box.size.height / 2);
@@ -835,7 +650,7 @@ class _GameScreenState extends State<GameScreen>
                             onPressed: _shuffleWheel,
                             icon: const Icon(Icons.shuffle_rounded,
                                 color: AppColors.purpleLight, size: 20),
-                            tooltip: 'Rearrange Grid',
+                            tooltip: 'Rearrange Wheel',
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -926,100 +741,109 @@ class _GameScreenState extends State<GameScreen>
 
                 const SizedBox(height: 4),
 
-                // Spacious 2D Grid Board Area
+                // Circular Game Board Wheel Area
                 Expanded(
-                  child: Container(
-                    key: _wheelKey,
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 14.0, vertical: 8.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.boardBackground.withAlpha(200),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                          color: AppColors.purpleBorder.withAlpha(120),
-                          width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkPurpleBorder.withAlpha(100),
-                          blurRadius: 20,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(26),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          _boardWidth = constraints.maxWidth;
-                          _boardHeight = constraints.maxHeight;
-
-                          final cellWidth = _boardWidth / _cols;
-                          final cellHeight = _boardHeight / _rows;
-
-                          // Tile size set to 68% of cell size so bubbles DO NOT touch each other!
-                          _currentTileSize =
-                              min(cellWidth, cellHeight) * 0.68;
-
-                          // Position each bubble centered inside its grid cell
-                          for (int r = 0; r < _rows; r++) {
-                            for (int c = 0; c < _cols; c++) {
-                              final tile = _grid[r][c];
-                              if (tile != null) {
-                                tile.centerPosition = Offset(
-                                  (c + 0.5) * cellWidth,
-                                  (r + 0.5) * cellHeight,
-                                );
-                              }
-                            }
-                          }
-
-                          final dragPoints = _selectedTiles
-                              .map((t) => t.centerPosition ?? Offset.zero)
-                              .toList();
-
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onPanDown: _onPanDown,
-                            onPanStart: _onPanStart,
-                            onPanUpdate: _onPanUpdate,
-                            onPanEnd: _onPanEnd,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                // Glowing Line Drag Painter
-                                Positioned.fill(
-                                  child: CustomPaint(
-                                    painter: WordLinePainter(
-                                      solvedLines: _solvedLines,
-                                      currentDragPoints: dragPoints,
-                                      currentTouchPoint: _currentTouchPoint,
-                                      activeColor: AppColors.activeCyan,
-                                    ),
-                                  ),
-                                ),
-
-                                // Spacious Grid Bubbles (No Touching!)
-                                ..._allTiles
-                                    .where((t) => !t.isUsed)
-                                    .map((tile) {
-                                  final pos = tile.centerPosition ??
-                                      Offset(_boardWidth / 2, _boardHeight / 2);
-                                  final x = pos.dx - (_currentTileSize / 2);
-                                  final y = pos.dy - (_currentTileSize / 2);
-
-                                  return Positioned(
-                                    left: x,
-                                    top: y,
-                                    child: LetterBubbleWidget(
-                                      tile: tile,
-                                      size: _currentTileSize,
-                                      activeColor: AppColors.activeCyan,
-                                    ),
-                                  );
-                                }),
-                              ],
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: AspectRatio(
+                        aspectRatio: 1.0,
+                        child: Container(
+                          key: _wheelKey,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.boardBackground.withAlpha(210),
+                            border: Border.all(
+                              color: AppColors.purpleBorder.withAlpha(160),
+                              width: 2.5,
                             ),
-                          );
-                        },
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkPurpleBorder.withAlpha(120),
+                                blurRadius: 24,
+                                spreadRadius: 2,
+                              ),
+                              BoxShadow(
+                                color: AppColors.activeCyan.withAlpha(20),
+                                blurRadius: 30,
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                _boardWidth = constraints.maxWidth;
+                                _boardHeight = constraints.maxHeight;
+
+                                // Position active tiles evenly along the circle
+                                _arrangeTilesOnCircle();
+
+                                final dragPoints = _selectedTiles
+                                    .map((t) => t.centerPosition ?? Offset.zero)
+                                    .toList();
+
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onPanDown: _onPanDown,
+                                  onPanStart: _onPanStart,
+                                  onPanUpdate: _onPanUpdate,
+                                  onPanEnd: _onPanEnd,
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      // Decorative Inner Circular Ring
+                                      Center(
+                                        child: Container(
+                                          width: max(0.0, _boardWidth * 0.68 * 2 - _currentTileSize),
+                                          height: max(0.0, _boardHeight * 0.68 * 2 - _currentTileSize),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: AppColors.purpleBorder.withAlpha(50),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Glowing Line Drag Painter
+                                      Positioned.fill(
+                                        child: CustomPaint(
+                                          painter: WordLinePainter(
+                                            solvedLines: _solvedLines,
+                                            currentDragPoints: dragPoints,
+                                            currentTouchPoint: _currentTouchPoint,
+                                            activeColor: AppColors.activeCyan,
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Circular Wheel Letter Bubbles
+                                      ..._allTiles
+                                          .where((t) => !t.isUsed)
+                                          .map((tile) {
+                                        final pos = tile.centerPosition ??
+                                            Offset(_boardWidth / 2, _boardHeight / 2);
+                                        final x = pos.dx - (_currentTileSize / 2);
+                                        final y = pos.dy - (_currentTileSize / 2);
+
+                                        return Positioned(
+                                          left: x,
+                                          top: y,
+                                          child: LetterBubbleWidget(
+                                            tile: tile,
+                                            size: _currentTileSize,
+                                            activeColor: AppColors.activeCyan,
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1041,10 +865,4 @@ class _GameScreenState extends State<GameScreen>
       ),
     );
   }
-}
-
-class Tuple2 {
-  final int item1;
-  final int item2;
-  const Tuple2(this.item1, this.item2);
 }
