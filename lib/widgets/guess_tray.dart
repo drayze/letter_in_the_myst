@@ -56,58 +56,6 @@ class GuessTray extends StatelessWidget {
               ),
             ),
 
-          // Guess Tiles Area
-          Container(
-            constraints: const BoxConstraints(minHeight: 52),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            decoration: BoxDecoration(
-              color: AppColors.scaffoldBackground,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.containerDark),
-            ),
-            child: selectedTiles.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Tap letters below to unscramble a word',
-                      style: AppTextStyles.emptyTrayPlaceholder,
-                    ),
-                  )
-                : Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 6.0,
-                    runSpacing: 6.0,
-                    children: selectedTiles.map((tile) {
-                      return GestureDetector(
-                        onTap: () => onTileTap(tile),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 8.0),
-                          decoration: BoxDecoration(
-                            color: AppColors.purpleBorder,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.purpleBright),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.purpleBright.withAlpha(100),
-                                blurRadius: 6,
-                              )
-                            ],
-                          ),
-                          child: Text(
-                            tile.letter,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-          ),
-
           const SizedBox(height: 12),
 
           // Action Buttons Row
