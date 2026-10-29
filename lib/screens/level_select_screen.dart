@@ -45,7 +45,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome, color: AppColors.goldAccent, size: 22),
+            Icon(Icons.sort_by_alpha_outlined, color: AppColors.goldAccent, size: 22),
             SizedBox(width: 8),
             Text(
               'Letters in the Myst',

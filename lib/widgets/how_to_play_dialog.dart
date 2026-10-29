@@ -20,8 +20,7 @@ class HowToPlayDialog extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.auto_awesome,
+                 Icon( Icons.play_arrow_outlined,
                   color: AppColors.goldAccent,
                   size: 28,
                 ),
@@ -67,7 +66,7 @@ class HowToPlayDialog extends StatelessWidget {
               color: AppColors.mintAccent,
               title: 'Complete the Myst',
               description:
-                  'Solve all secret words to lock in glowing lines across the entire circular wheel!',
+                  'Solve all secret words to unlock the power of your mind and deep relaxation.',
             ),
             const SizedBox(height: 24),
             SizedBox(
