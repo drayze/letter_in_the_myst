@@ -57,34 +57,6 @@ abstract class AppColors {
     Color(0xFF3A86FF), // Blue
   ];
 
-  // --- Empty Bubble Colors ---
-  static const List<Color> bubbleColors = [
-    Color(0xFF00F5D4),
-    Color(0xFFE0AAFF),
-    Color(0xFF74C69D),
-    Color(0xFFFF9E00),
-    Color(0xFF9D4EDD),
-  ];
-
-  // --- Cauldron Cast Iron & Brew ---
-  static const Color cauldronHandleBorder = Color(0xFF333333);
-  static const Color cauldronPotBorder = Color(0xFF3A3A3A);
-  static const Color cauldronDarkBase = Color(0xFF121212);
-  static const Color cauldronRimHighlight = Color(0xFF2C2C2C);
-  static const Color cauldronMidDark = Color(0xFF181818);
-  static const Color cauldronBellyBlack = Color(0xFF0A0A0A);
-
-  static const Color brewCore = Color(0xFF3A0066);
-  static const Color brewMiddle = Color(0xFF20003B);
-  static const Color brewEdge = Color(0xFF0D001A);
-
-  // --- Fire & Aura Glow Colors ---
-  static const Color fireDeepRed = Color(0xFFFF3D00);
-  static const Color fireWarmFlame = Color(0xFFFF6D00);
-  static const Color fireCrimson = Color(0xFFD50000);
-  static const Color fireHotCore = Color(0xFFFFF9C4);
-  static const Color fireGoldenYellow = Color(0xFFFFD600);
-  static const Color fireLightYellow = Color(0xFFFFE082);
 }
 
 /// Centralized gradients for UI backgrounds, cauldrons, and tiles
@@ -95,25 +67,6 @@ abstract class AppGradients {
     end: Alignment.bottomRight,
   );
 
-  static const RadialGradient cauldronPot = RadialGradient(
-    center: Alignment(-0.2, -0.3),
-    radius: 0.95,
-    colors: [
-      AppColors.cauldronRimHighlight,
-      AppColors.cauldronMidDark,
-      AppColors.cauldronBellyBlack,
-    ],
-  );
-
-  static const RadialGradient magicBrew = RadialGradient(
-    center: Alignment.center,
-    radius: 0.85,
-    colors: [
-      AppColors.brewCore,
-      AppColors.brewMiddle,
-      AppColors.brewEdge,
-    ],
-  );
 
   static RadialGradient bubbleTile(Color bubbleColor) {
     return RadialGradient(
@@ -127,29 +80,6 @@ abstract class AppGradients {
       stops: const [0.0, 0.65, 1.0],
     );
   }
-
-  static LinearGradient cubeFaceGradient(Color baseColor) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        Color.alphaBlend(Colors.white.withAlpha(60), baseColor),
-        baseColor,
-        Color.alphaBlend(Colors.black.withAlpha(90), baseColor),
-      ],
-      stops: const [0.0, 0.55, 1.0],
-    );
-  }
-
-  static const LinearGradient blankCubeGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF26134B),
-      Color(0xFF1B0D3A),
-      Color(0xFF100528),
-    ],
-  );
 
   static LinearGradient tileGradient(Color bgColor) {
     return LinearGradient(
