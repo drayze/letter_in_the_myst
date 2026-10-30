@@ -11,14 +11,16 @@ class LevelsData {
       'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SURF', 'POND'
     ],
     'Wisdom': [
-      'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISE', 'MIST',
+      'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISDOM', 'MIST',
       'SCROLL', 'QUILL', 'SHELF', 'INK', 'MIND', 'LOGIC', 'WORD',
-      'FACT', 'LORE', 'KNOW', 'LEARN', 'TRUTH', 'GUIDE', 'STUDY'
+      'FACT', 'LORE', 'LEARN', 'TRUTH', 'GUIDE', 'STUDY',
+      'KNOWLEDGE', 'TEACH'
     ],
     'Cosmic': [
       'STAR', 'MOON', 'GLOW', 'DUSK', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
       'SOLAR', 'NEBULA', 'GALAXY', 'ORBIT', 'COMET', 'NOVA', 'PLANET',
-      'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'STARRY', 'HALO'
+      'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'METEOR', 'HALO',
+      'GRAVITY',
     ],
     'Elements': [
       'GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'COIN', 'ORE', 'MINE',
@@ -36,19 +38,20 @@ class LevelsData {
       'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR'
     ],
     'Science': [
-      'ELIXIR', 'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST',
+      'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST',
       'SPELL', 'BOIL', 'VIAL', 'MAGIC', 'ACID', 'VAPOR', 'MIX',
       'TOXIN', 'LAB', 'ATOM', 'BOND', 'CELL', 'FORM', 'HEAT'
     ],
     'Illusion': [
-      'SHADOW', 'SECRET', 'RIDDLE', 'GHOST', 'DARK', 'MIST', 'NIGHT',
+      'SHADOW', 'SECRET', 'RIDDLE', 'CAULDRON', 'DARK', 'MIST', 'NIGHT',
       'PHANTOM', 'RUNE', 'CRYPT', 'VAULT', 'MASK', 'MIRAGE', 'GLOOM',
-      'SHADE', 'DREAM', 'VISION', 'VEIL', 'ECHO', 'FOG', 'CLOAK'
+      'SHADE', 'DREAM', 'VISION', 'VEIL', 'ECHO', 'FOG', 'CLOAK', 'SPIRIT',
+      'SOUL', 'LOST',
     ],
     'Mastery': [
       'PHANTOM', 'ENIGMA', 'WHISPER', 'TEMPLE', 'SHADOW', 'RIDDLE',
       'SECRET', 'CRYPT', 'VAULT', 'RUNE', 'MAGIC', 'GHOST', 'MYSTERY',
-      'DARK', 'SHRINE', 'LEGEND', 'MASTER', 'ARCANE', 'SPIRIT', 'CROWN'
+      'DARK', 'SHRINE', 'LEGEND', 'MASTERY', 'ARCANE', 'SPIRIT', 'CROWN'
     ],
   };
 
