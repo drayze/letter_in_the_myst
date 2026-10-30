@@ -10,16 +10,19 @@ class ScoreManager {
   static const String _keyCompletedLevels = 'myst_completed_levels';
   static const String _keyTotalWordsSolved = 'myst_total_words_solved';
   static const String _keyLevelScorePrefix = 'myst_level_score_';
+  static const String _keyCurrentLevelId = 'myst_current_level_id';
 
   int _totalScore = 0;
   int _highScore = 0;
   int _totalWordsSolved = 0;
+  int _currentLevelId = 1;
   final Set<int> _completedLevelIds = {};
   final Map<int, int> _levelBestScores = {};
 
   int get totalScore => _totalScore;
   int get highScore => _highScore;
   int get totalWordsSolved => _totalWordsSolved;
+  int get currentLevelId => _currentLevelId;
   Set<int> get completedLevelIds => Set.unmodifiable(_completedLevelIds);
 
   Future<void> init() async {
@@ -27,6 +30,7 @@ class ScoreManager {
     _totalScore = prefs.getInt(_keyTotalScore) ?? 0;
     _highScore = prefs.getInt(_keyHighScore) ?? 0;
     _totalWordsSolved = prefs.getInt(_keyTotalWordsSolved) ?? 0;
+    _currentLevelId = prefs.getInt(_keyCurrentLevelId) ?? 1;
 
     final completedList = prefs.getStringList(_keyCompletedLevels) ?? [];
     _completedLevelIds.clear();
@@ -58,6 +62,12 @@ class ScoreManager {
 
     _totalWordsSolved += wordsSolvedCount;
     _completedLevelIds.add(levelId);
+
+    // Advance current level number
+    if (levelId >= _currentLevelId) {
+      _currentLevelId = levelId + 1;
+      await prefs.setInt(_keyCurrentLevelId, _currentLevelId);
+    }
 
     // Update level best score
     final currentBest = _levelBestScores[levelId] ?? 0;

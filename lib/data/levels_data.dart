@@ -123,6 +123,14 @@ class LevelsData {
     }).toList();
   }
 
+  /// Retrieves a Level instance for a specific ID with 6 to 8 words
+  static Level getLevel(int id) {
+    if (id >= 1 && id <= storyLevelConfigs.length) {
+      return getLevelForConfig(storyLevelConfigs[id - 1]);
+    }
+    return getRandomLevel(id);
+  }
+
   /// Creates a Level instance with 6 to 8 words randomly pulled from the word database
   static Level getLevelForConfig(LevelConfig config, [int? seed]) {
     final rand = seed != null ? Random(seed) : Random();

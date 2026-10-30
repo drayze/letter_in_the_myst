@@ -52,7 +52,10 @@ class _GameScreenState extends State<GameScreen>
   String? _feedbackMessage;
   bool _isLevelCompleted = false;
 
-  final List<Color> _linePalette = AppColors.linePalette;
+  Color get _activeLineColor {
+    final palette = AppColors.linePalette;
+    return palette[(_currentLevel.id - 1) % palette.length];
+  }
 
   @override
   void initState() {
@@ -313,7 +316,7 @@ class _GameScreenState extends State<GameScreen>
 
     if (matchedWordIdx != -1) {
       final matchedWord = _targetWords[matchedWordIdx];
-      final color = _linePalette[matchedWordIdx % _linePalette.length];
+      final color = _activeLineColor;
 
       _activeFlyingTiles.clear();
 
@@ -507,13 +510,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _loadNextLevel() {
-    Level nextLevel;
-    if (_currentLevel.id < LevelsData.levels.length) {
-      nextLevel = LevelsData.levels[_currentLevel.id];
-    } else {
-      nextLevel = LevelsData.getRandomLevel(_currentLevel.id + 1);
-    }
-
+    final nextLevel = LevelsData.getLevel(_currentLevel.id + 1);
     setState(() {
       _initLevel(nextLevel);
     });
@@ -532,7 +529,7 @@ class _GameScreenState extends State<GameScreen>
         backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         title: Text(
-          _currentLevel.name,
+          'Level ${_currentLevel.id}: ${_currentLevel.name}',
           style: AppTextStyles.appBarTitle,
         ),
         actions: [
@@ -724,11 +721,11 @@ class _GameScreenState extends State<GameScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16.0, vertical: 6.0),
                       decoration: BoxDecoration(
-                        color: AppColors.activeCyan,
+                        color: _activeLineColor,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.activeCyan.withAlpha(140),
+                            color: _activeLineColor.withAlpha(140),
                             blurRadius: 10,
                           )
                         ],
@@ -775,7 +772,7 @@ class _GameScreenState extends State<GameScreen>
                                 spreadRadius: 2,
                               ),
                               BoxShadow(
-                                color: AppColors.activeCyan.withAlpha(20),
+                                color: _activeLineColor.withAlpha(25),
                                 blurRadius: 30,
                               ),
                             ],
@@ -823,7 +820,7 @@ class _GameScreenState extends State<GameScreen>
                                           painter: WordLinePainter(
                                             currentDragPoints: dragPoints,
                                             currentTouchPoint: _currentTouchPoint,
-                                            activeColor: AppColors.activeCyan,
+                                            activeColor: _activeLineColor,
                                           ),
                                         ),
                                       ),
@@ -843,7 +840,7 @@ class _GameScreenState extends State<GameScreen>
                                           child: LetterBubbleWidget(
                                             tile: tile,
                                             size: _currentTileSize,
-                                            activeColor: AppColors.activeCyan,
+                                            activeColor: _activeLineColor,
                                           ),
                                         );
                                       }),
