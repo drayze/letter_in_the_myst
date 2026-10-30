@@ -75,14 +75,4 @@ class ScoreManager {
       _completedLevelIds.map((id) => id.toString()).toList(),
     );
   }
-
-  Future<void> resetAllData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    _totalScore = 0;
-    _highScore = 0;
-    _totalWordsSolved = 0;
-    _completedLevelIds.clear();
-    _levelBestScores.clear();
-  }
 }

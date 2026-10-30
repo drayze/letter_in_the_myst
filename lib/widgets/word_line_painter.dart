@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import '../models/letter_tile.dart';
 import '../theme/themes.dart';
 
 class WordLinePainter extends CustomPainter {
-  final List<SolvedWordLine> solvedLines;
   final List<Offset> currentDragPoints;
   final Offset? currentTouchPoint;
   final Color activeColor;
 
   WordLinePainter({
-    required this.solvedLines,
     required this.currentDragPoints,
     this.currentTouchPoint,
     this.activeColor = AppColors.activeCyan,
@@ -17,19 +14,6 @@ class WordLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Draw Solved Word Lines
-    for (var line in solvedLines) {
-      if (line.points.length < 2) continue;
-      _drawLinePath(
-        canvas: canvas,
-        points: line.points,
-        touchPoint: null,
-        mainColor: line.color,
-        strokeWidth: 12.0,
-      );
-    }
-
-    // 2. Draw Active Drag Line
     if (currentDragPoints.isNotEmpty) {
       _drawLinePath(
         canvas: canvas,

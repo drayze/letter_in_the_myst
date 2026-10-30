@@ -42,7 +42,6 @@ class _GameScreenState extends State<GameScreen>
   double _currentTileSize = 52.0;
 
   final List<LetterTile> _selectedTiles = [];
-  final List<SolvedWordLine> _solvedLines = [];
   final Map<int, Set<int>> _revealedIndices = {};
 
   Offset? _currentTouchPoint;
@@ -86,7 +85,6 @@ class _GameScreenState extends State<GameScreen>
     _hintsRemaining = 3;
     _feedbackMessage = null;
     _selectedTiles.clear();
-    _solvedLines.clear();
     _revealedIndices.clear();
     _activeFlyingTiles.clear();
     _slotKeys.clear();
@@ -104,7 +102,7 @@ class _GameScreenState extends State<GameScreen>
     _activeBoardWords = [];
     _wordQueue = [];
 
-    // Fit words up to ~16 total letters on board; queue remaining words for dynamic replenishment
+    // Fit words up to ~14 total letters on board; queue remaining words for dynamic replenishment
     int accumulatedLetters = 0;
     const maxActiveBoardLetters = 14;
 
@@ -315,7 +313,7 @@ class _GameScreenState extends State<GameScreen>
 
     if (matchedWordIdx != -1) {
       final matchedWord = _targetWords[matchedWordIdx];
-      final color = _linePalette[_solvedLines.length % _linePalette.length];
+      final color = _linePalette[matchedWordIdx % _linePalette.length];
 
       _activeFlyingTiles.clear();
 
@@ -823,7 +821,6 @@ class _GameScreenState extends State<GameScreen>
                                       Positioned.fill(
                                         child: CustomPaint(
                                           painter: WordLinePainter(
-                                            solvedLines: _solvedLines,
                                             currentDragPoints: dragPoints,
                                             currentTouchPoint: _currentTouchPoint,
                                             activeColor: AppColors.activeCyan,

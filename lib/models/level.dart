@@ -1,11 +1,9 @@
 class TargetWord {
   final String word;
-  final String? clue;
   bool isSolved;
 
   TargetWord({
     required this.word,
-    this.clue,
     this.isSolved = false,
   });
 
