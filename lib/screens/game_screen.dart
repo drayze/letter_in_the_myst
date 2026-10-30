@@ -478,6 +478,7 @@ class _GameScreenState extends State<GameScreen>
       levelId: _currentLevel.id,
       levelScore: _score,
       wordsSolvedCount: _targetWords.length,
+      timeInSeconds: _timeInSeconds,
     );
 
     Future.delayed(const Duration(milliseconds: 600), () {

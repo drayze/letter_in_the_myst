@@ -48,6 +48,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     final highScore = ScoreManager().highScore;
     final completedCount = ScoreManager().completedLevelIds.length;
     final wordsSolved = ScoreManager().totalWordsSolved;
+    final totalTimeFormatted = ScoreManager().formattedTotalTime;
 
     final currentLevelId = ScoreManager().currentLevelId;
     final currentLevel = LevelsData.getLevel(currentLevelId);
@@ -143,6 +144,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                     children: [
                       _buildHeaderStat('Completed', '$completedCount Levels'),
                       _buildHeaderStat('Words Solved', '$wordsSolved Words'),
+                      _buildHeaderStat('Total Time', totalTimeFormatted),
                     ],
                   ),
                 ],
