@@ -68,20 +68,6 @@ class LetterBubbleWidget extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Top-Left Bubble Specular Highlight Dot
-            Positioned(
-              top: size * 0.14,
-              left: size * 0.16,
-              child: Container(
-                width: size * 0.22,
-                height: size * 0.14,
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(180),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-
             // Letter Text (only rendered if tile has a letter)
             if (tile.letter.isNotEmpty)
               Center(

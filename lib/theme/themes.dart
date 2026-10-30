@@ -222,14 +222,6 @@ abstract class AppShadows {
     ];
   }
 
-  static final List<BoxShadow> cauldronShadow = [
-    BoxShadow(
-      color: Colors.black.withAlpha(220),
-      blurRadius: 20,
-      offset: const Offset(0, 10),
-    ),
-  ];
-
   static final List<BoxShadow> bannerShadow = [
     BoxShadow(
       color: AppColors.seedPurple.withAlpha(120),
