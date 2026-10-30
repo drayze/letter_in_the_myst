@@ -116,8 +116,8 @@ class VictoryDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 IconButton.filledTonal(
                   onPressed: onLevelSelect,
-                  icon: const Icon(Icons.grid_view_rounded),
-                  tooltip: 'Level Select',
+                  icon: const Icon(Icons.home),
+                  tooltip: 'Return Home',
                   style: IconButton.styleFrom(
                     backgroundColor: AppColors.containerDark,
                     foregroundColor: AppColors.purpleLight,
