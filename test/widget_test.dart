@@ -12,18 +12,14 @@ void main() {
     expect(find.textContaining('TOTAL SCORE'), findsOneWidget);
   });
 
-  test('Every level contains between 6 and 8 words from database', () {
-    for (final level in LevelsData.levels) {
+  test('Every level contains between 6 and 8 words from database infinitely', () {
+    for (int id = 1; id <= 100; id++) {
+      final level = LevelsData.getLevel(id);
+      expect(level.id, equals(id));
       expect(level.words.length, greaterThanOrEqualTo(6),
-          reason: 'Level ${level.id} (${level.name}) should have at least 6 words');
+          reason: 'Level $id (${level.name}) should have at least 6 words');
       expect(level.words.length, lessThanOrEqualTo(8),
-          reason: 'Level ${level.id} (${level.name}) should have at most 8 words');
-    }
-
-    for (int id = 1; id <= 20; id++) {
-      final randomLevel = LevelsData.getRandomLevel(id);
-      expect(randomLevel.words.length, greaterThanOrEqualTo(6));
-      expect(randomLevel.words.length, lessThanOrEqualTo(8));
+          reason: 'Level $id (${level.name}) should have at most 8 words');
     }
   });
 }

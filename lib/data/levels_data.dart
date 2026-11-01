@@ -116,19 +116,37 @@ class LevelsData {
     LevelConfig(12, 'Grand Sanctuary', 'Mastery', 'The ultimate test of letters in the myst.'),
   ];
 
-  /// Get static list of levels dynamically constructed with 6-8 words pulled from word database
+  /// Get static list of story levels
   static List<Level> get levels {
     return storyLevelConfigs.map((config) {
       return getLevelForConfig(config);
     }).toList();
   }
 
-  /// Retrieves a Level instance for a specific ID with 6 to 8 words
+  /// Retrieves a Level instance for any level ID (1, 2, 3 ... 13, 14, 15 ... infinitely)
   static Level getLevel(int id) {
     if (id >= 1 && id <= storyLevelConfigs.length) {
-      return getLevelForConfig(storyLevelConfigs[id - 1]);
+      return getLevelForConfig(storyLevelConfigs[id - 1], id * 997);
     }
-    return getRandomLevel(id);
+
+    // For levels beyond 12 (level 13, 14, 15, 100...), generate endless thematic levels
+    final configIndex = (id - 1) % storyLevelConfigs.length;
+    final baseConfig = storyLevelConfigs[configIndex];
+    final chapter = ((id - 1) ~/ storyLevelConfigs.length) + 1;
+
+    final String name = chapter > 1 ? '${baseConfig.name} $chapter' : baseConfig.name;
+    final words = getRandomWordsForLevel(
+      category: baseConfig.category,
+      random: Random(id * 997),
+    );
+
+    return Level(
+      id: id,
+      name: name,
+      category: baseConfig.category,
+      words: words,
+      description: 'Chapter $chapter: ${baseConfig.description}',
+    );
   }
 
   /// Creates a Level instance with 6 to 8 words randomly pulled from the word database

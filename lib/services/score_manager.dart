@@ -83,11 +83,8 @@ class ScoreManager {
     _totalTimeInSeconds += timeInSeconds;
     _completedLevelIds.add(levelId);
 
-    // Advance current level number
-    if (levelId >= _currentLevelId) {
-      _currentLevelId = levelId + 1;
-      await prefs.setInt(_keyCurrentLevelId, _currentLevelId);
-    }
+    // Increment level counter by 1 for every level completed
+    _currentLevelId += 1;
 
     // Update level best score
     final currentBest = _levelBestScores[levelId] ?? 0;
@@ -96,11 +93,12 @@ class ScoreManager {
       await prefs.setInt('$_keyLevelScorePrefix$levelId', levelScore);
     }
 
-    // Persist scores to SharedPreferences
+    // Persist scores and current level ID to SharedPreferences
     await prefs.setInt(_keyTotalScore, _totalScore);
     await prefs.setInt(_keyHighScore, _highScore);
     await prefs.setInt(_keyTotalWordsSolved, _totalWordsSolved);
     await prefs.setInt(_keyTotalTimeSeconds, _totalTimeInSeconds);
+    await prefs.setInt(_keyCurrentLevelId, _currentLevelId);
     await prefs.setStringList(
       _keyCompletedLevels,
       _completedLevelIds.map((id) => id.toString()).toList(),

@@ -29,8 +29,8 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   }
 
   void _openRandomLevel() async {
-    final nextId = ScoreManager().currentLevelId + ScoreManager().completedLevelIds.length + 100;
-    final randomLevel = LevelsData.getRandomLevel(nextId);
+    final currentLevelId = ScoreManager().currentLevelId;
+    final randomLevel = LevelsData.getRandomLevel(currentLevelId);
 
     await Navigator.push<bool>(
       context,
