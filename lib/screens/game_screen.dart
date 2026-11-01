@@ -619,7 +619,7 @@ class _GameScreenState extends State<GameScreen>
                 // Stats & Controls Row
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
@@ -651,10 +651,6 @@ class _GameScreenState extends State<GameScreen>
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      Row(
-                        children: [
                           IconButton(
                             onPressed: _shuffleWheel,
                             icon: const Icon(Icons.shuffle_rounded,
@@ -682,9 +678,7 @@ class _GameScreenState extends State<GameScreen>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ),],),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
