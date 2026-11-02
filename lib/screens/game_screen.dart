@@ -621,19 +621,22 @@ class _GameScreenState extends State<GameScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 14.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 10.0,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             'Unsolved: $remainingLetters',
                             style: const TextStyle(
                               color: AppColors.purpleLight,
-                              fontSize: 12,
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           if (_wordQueue.isNotEmpty) ...[
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 52),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
@@ -645,21 +648,37 @@ class _GameScreenState extends State<GameScreen>
                                 'Queue: ${_wordQueue.length}',
                                 style: const TextStyle(
                                   color: AppColors.goldAccent,
-                                  fontSize: 11,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                          ],
-                          IconButton(
-                            onPressed: _shuffleWheel,
-                            icon: const Icon(Icons.shuffle_rounded,
-                                color: AppColors.purpleLight, size: 20),
-                            tooltip: 'Rearrange Wheel',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                          const SizedBox(width: 12),
+                          ],],
+                      ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: _shuffleWheel,
+                                icon: const Icon(Icons.shuffle_rounded,
+                                    color: AppColors.purpleLight, size: 20),
+                                label: Text('Shuffle'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.purpleAccent,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: AppColors.containerDark,
+                                  disabledForegroundColor: Colors.white24,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10.0, vertical: 4.0),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                          const SizedBox(width: 52),
                           ElevatedButton.icon(
                             onPressed: _hintsRemaining > 0 ? _onHint : null,
                             icon: const Icon(Icons.lightbulb_outline_rounded,
@@ -679,22 +698,24 @@ class _GameScreenState extends State<GameScreen>
                               ),
                             ),
                           ),],),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             'Level: $_score pts',
                             style: const TextStyle(
                               color: AppColors.goldAccent,
-                              fontSize: 12,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const SizedBox(width: 52),
                           Text(
                             'Total: $accumulatedTotal pts',
                             style: const TextStyle(
                               color: AppColors.mintAccent,
-                              fontSize: 11,
+                              fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
