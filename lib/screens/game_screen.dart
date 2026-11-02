@@ -42,10 +42,8 @@ class _GameScreenState extends State<GameScreen>
   double _currentTileSize = 52.0;
 
   final List<LetterTile> _selectedTiles = [];
-  final Map<int, Set<int>> _revealedIndices = {};
 
   Offset? _currentTouchPoint;
-  int _hintsRemaining = 3;
   int _score = 0;
   int _timeInSeconds = 0;
   Timer? _timer;
@@ -113,10 +111,8 @@ class _GameScreenState extends State<GameScreen>
     _isLevelCompleted = false;
     _timeInSeconds = 0;
     _score = 0;
-    _hintsRemaining = 3;
     _feedbackMessage = null;
     _selectedTiles.clear();
-    _revealedIndices.clear();
     _activeFlyingTiles.clear();
     _slotKeys.clear();
 
@@ -444,63 +440,12 @@ class _GameScreenState extends State<GameScreen>
     return null;
   }
 
-  void _onHint() {
-    if (_hintsRemaining <= 0 || _flightController.isAnimating) return;
-
-    int unsolvedWordIdx = -1;
-    for (int i = 0; i < _targetWords.length; i++) {
-      if (!_targetWords[i].isSolved) {
-        unsolvedWordIdx = i;
-        break;
-      }
-    }
-
-    if (unsolvedWordIdx == -1) return;
-
-    final target = _targetWords[unsolvedWordIdx];
-    _revealedIndices.putIfAbsent(unsolvedWordIdx, () => {});
-
-    int unrevealedCharIdx = -1;
-    for (int c = 0; c < target.length; c++) {
-      if (!_revealedIndices[unsolvedWordIdx]!.contains(c)) {
-        unrevealedCharIdx = c;
-        break;
-      }
-    }
-
-    if (unrevealedCharIdx == -1) return;
-
-    final neededLetter = target.word[unrevealedCharIdx];
-
-    LetterTile? hintTile;
-    for (var tile in _allTiles) {
-      if (!tile.isUsed && tile.letter == neededLetter) {
-        hintTile = tile;
-        break;
-      }
-    }
-
-    const int hintCost = 25;
-
-    setState(() {
-      _revealedIndices[unsolvedWordIdx]!.add(unrevealedCharIdx);
-      if (hintTile != null) {
-        hintTile.isHinted = true;
-      }
-      _hintsRemaining--;
-      _score = (_score - hintCost).clamp(0, 999999);
-    });
-    _setFeedbackMessage(
-        'Hint (-$hintCost pts): Word #${unsolvedWordIdx + 1} contains "$neededLetter"!');
-  }
-
   void _handleLevelCompleted() async {
     _isLevelCompleted = true;
     _timer?.cancel();
 
     final timeBonus = (300 - _timeInSeconds).clamp(0, 300);
-    final hintBonus = _hintsRemaining * 50;
-    _score += timeBonus + hintBonus;
+    _score += timeBonus;
 
     await ScoreManager().recordLevelCompletion(
       levelId: _currentLevel.id,
@@ -633,7 +578,6 @@ class _GameScreenState extends State<GameScreen>
                           return WordSlotWidget(
                             wordIndex: index,
                             targetWord: _targetWords[index],
-                            revealedIndices: _revealedIndices[index] ?? {},
                             slotKeys: _slotKeys,
                           );
                         }),
@@ -691,7 +635,7 @@ class _GameScreenState extends State<GameScreen>
                                 onPressed: _shuffleWheel,
                                 icon: const Icon(Icons.shuffle_rounded,
                                     color: AppColors.purpleLight, size: 20),
-                                label: Text('Shuffle'),
+                                label: const Text('Shuffle'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.purpleAccent,
                                   foregroundColor: Colors.white,
@@ -706,26 +650,8 @@ class _GameScreenState extends State<GameScreen>
                                   ),
                                 ),
                               ),
-                          const SizedBox(width: 52),
-                          ElevatedButton.icon(
-                            onPressed: _hintsRemaining > 0 ? _onHint : null,
-                            icon: const Icon(Icons.lightbulb_outline_rounded,
-                                size: 14),
-                            label: Text('Hint ($_hintsRemaining)'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.purpleAccent,
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: AppColors.containerDark,
-                              disabledForegroundColor: Colors.white24,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10.0, vertical: 4.0),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),],),
+                            ],
+                          ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,

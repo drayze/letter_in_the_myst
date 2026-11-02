@@ -5,14 +5,12 @@ import '../theme/themes.dart';
 class WordSlotWidget extends StatelessWidget {
   final int wordIndex;
   final TargetWord targetWord;
-  final Set<int> revealedIndices;
   final Map<String, GlobalKey> slotKeys;
 
   const WordSlotWidget({
     super.key,
     required this.wordIndex,
     required this.targetWord,
-    required this.revealedIndices,
     required this.slotKeys,
   });
 
@@ -50,7 +48,6 @@ class WordSlotWidget extends StatelessWidget {
           children: [
             ...List.generate(targetWord.word.length, (index) {
               final char = targetWord.word[index];
-              final isRevealedByHint = revealedIndices.contains(index);
               final key = slotKeys['${wordIndex}_$index'];
 
               String displayChar = '';
@@ -63,11 +60,6 @@ class WordSlotWidget extends StatelessWidget {
                 boxBgColor = AppColors.greenSolvedDark;
                 boxBorderColor = AppColors.mintAccent;
                 charColor = AppColors.greenLightText;
-              } else if (isRevealedByHint) {
-                displayChar = char;
-                boxBgColor = AppColors.goldDarkBg;
-                boxBorderColor = AppColors.goldAccent;
-                charColor = AppColors.goldLight;
               } else {
                 displayChar = '•';
                 charColor = AppColors.purpleAccent;
@@ -88,7 +80,7 @@ class WordSlotWidget extends StatelessWidget {
                     displayChar,
                     style: TextStyle(
                       color: charColor,
-                      fontSize: isSolved || isRevealedByHint ? 14 : 11,
+                      fontSize: isSolved ? 14 : 11,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

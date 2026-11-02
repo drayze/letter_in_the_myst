@@ -5,7 +5,6 @@ class LetterTile {
   final String letter;
   bool isUsed;
   bool isSelected;
-  bool isHinted;
   Color? solvedColor;
   Offset? centerPosition;
 
@@ -14,7 +13,6 @@ class LetterTile {
     required this.letter,
     this.isUsed = false,
     this.isSelected = false,
-    this.isHinted = false,
     this.solvedColor,
     this.centerPosition,
   });

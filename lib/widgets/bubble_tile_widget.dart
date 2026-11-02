@@ -35,12 +35,6 @@ class LetterBubbleWidget extends StatelessWidget {
       textColor = Colors.white;
       scale = 1.15;
       boxShadow = AppShadows.glow(activeColor, blurRadius: 16, spreadRadius: 3);
-    } else if (tile.isHinted) {
-      bubbleColor = AppColors.bubbleGoldBg;
-      borderColor = AppColors.goldAccent;
-      textColor = AppColors.goldLight;
-      scale = 1.08;
-      boxShadow = AppShadows.glow(AppColors.goldAccent, blurRadius: 14, spreadRadius: 2);
     } else {
       bubbleColor = AppColors.usedTileBackground.withAlpha(190);
       borderColor = AppColors.bubbleTileBorder;
@@ -61,7 +55,7 @@ class LetterBubbleWidget extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: borderColor,
-            width: tile.isSelected || tile.isHinted ? 2.5 : 1.6,
+            width: tile.isSelected ? 2.5 : 1.6,
           ),
           boxShadow: boxShadow,
           gradient: AppGradients.bubbleTile(bubbleColor),

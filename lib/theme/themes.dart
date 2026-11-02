@@ -31,12 +31,10 @@ abstract class AppColors {
   static const Color greenDarkText = Color(0xFF081C15);
   static const Color greenLightText = Color(0xFFD8F3DC);
 
-  // --- Gold / Yellow / Warning / Hints ---
+  // --- Gold / Yellow / Warning ---
   static const Color goldAccent = Color(0xFFFFD700);
   static const Color warningOrange = Color(0xFFFF9E00);
   static const Color goldLight = Color(0xFFFFE57F);
-  static const Color goldDarkBg = Color(0xFF5C4000);
-  static const Color bubbleGoldBg = Color(0xFF7A5C00);
 
   // --- 3D Cube & Blank Cube Colors ---
   static const Color blankCubeFill = Color(0xFF1B0D3A);
@@ -194,13 +192,6 @@ abstract class AppTextStyles {
     color: AppColors.purpleLight,
     fontSize: 15,
     fontWeight: FontWeight.w500,
-  );
-
-  static const TextStyle hintMessage = TextStyle(
-    color: AppColors.warningOrange,
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
   );
 
   static const TextStyle emptyTrayPlaceholder = TextStyle(

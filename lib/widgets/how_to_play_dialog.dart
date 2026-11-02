@@ -54,14 +54,6 @@ class HowToPlayDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
-              icon: Icons.lightbulb,
-              color: AppColors.goldAccent,
-              title: 'Need a Hint?',
-              description:
-                  'Tap the Hint button to reveal a letter slot in one of the hidden words.',
-            ),
-            const SizedBox(height: 16),
-            _buildRuleItem(
               icon: Icons.workspace_premium,
               color: AppColors.mintAccent,
               title: 'Complete the Myst',
