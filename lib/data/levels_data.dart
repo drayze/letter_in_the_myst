@@ -35,7 +35,9 @@ class LevelsData {
     'Mystery': [
       'CIPHER', 'PUZZLE', 'MYSTERY', 'CRYPT', 'LOCK', 'RUNE', 'KEY',
       'CODE', 'VAULT', 'SECRET', 'RIDDLE', 'MASK', 'GHOST', 'PHANTOM',
-      'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR'
+      'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR',
+      'WHISPER', 'TEMPLE', 'MAGIC',
+      'SHRINE', 'LEGEND',  'ARCANE', 'SPIRIT', 'CROWN'
     ],
     'Science': [
       'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST',
@@ -47,11 +49,6 @@ class LevelsData {
       'PHANTOM', 'RUNE', 'CRYPT', 'VAULT', 'MASK', 'MIRAGE', 'GLOOM',
       'SHADE', 'DREAM', 'VISION', 'VEIL', 'ECHO', 'FOG', 'CLOAK', 'SPIRIT',
       'SOUL', 'LOST',
-    ],
-    'Mastery': [
-      'PHANTOM', 'ENIGMA', 'WHISPER', 'TEMPLE', 'SHADOW', 'RIDDLE',
-      'SECRET', 'CRYPT', 'VAULT', 'RUNE', 'MAGIC', 'GHOST', 'MYSTERY',
-      'DARK', 'SHRINE', 'LEGEND', 'MASTERY', 'ARCANE', 'SPIRIT', 'CROWN'
     ],
   };
 
@@ -113,7 +110,7 @@ class LevelsData {
     LevelConfig(9, 'Alchemy Lab', 'Science', 'Mix glowing concoctions of scrambled golden runes.'),
     LevelConfig(10, 'Cosmic Nebula', 'Cosmic', 'Stardust particles align to form celestial mysteries.'),
     LevelConfig(11, 'Shadow Realm', 'Illusion', 'Darkness parts when you reveal the true words of the mist.'),
-    LevelConfig(12, 'Grand Sanctuary', 'Mastery', 'The ultimate test of letters in the myst.'),
+    LevelConfig(12, 'Grand Sanctuary', 'Mystery', 'The ultimate test of letters in the myst.'),
   ];
 
   /// Get static list of story levels
