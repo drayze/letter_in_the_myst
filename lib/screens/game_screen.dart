@@ -732,20 +732,12 @@ class _GameScreenState extends State<GameScreen>
                         children: [
                           Text(
                             'Level: $_score pts',
-                            style: const TextStyle(
-                              color: AppColors.goldAccent,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style:  AppTextStyles.levelCardScore
                           ),
                           const SizedBox(width: 52),
                           Text(
                             'Total: $accumulatedTotal pts',
-                            style: const TextStyle(
-                              color: AppColors.mintAccent,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTextStyles.totalScoreBanner
                           ),
                         ],
                       ),

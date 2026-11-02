@@ -115,8 +115,8 @@ abstract class AppTextStyles {
   );
 
   static const TextStyle totalScoreBanner = TextStyle(
-    color: AppColors.goldAccent,
-    fontSize: 12,
+    color: AppColors.mintAccent,
+    fontSize: 16,
     fontWeight: FontWeight.bold,
   );
 
@@ -145,7 +145,7 @@ abstract class AppTextStyles {
 
   static const TextStyle levelCardScore = TextStyle(
     color: AppColors.goldAccent,
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: FontWeight.bold,
   );
 
@@ -173,7 +173,7 @@ abstract class AppTextStyles {
 
   static const TextStyle warningMessage = TextStyle(
     color: AppColors.warningOrange,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: FontWeight.bold,
   );
 
