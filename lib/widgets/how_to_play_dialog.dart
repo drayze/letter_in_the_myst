@@ -54,6 +54,14 @@ class HowToPlayDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
+              icon: Icons.start_rounded,
+              color: AppColors.goldAccent,
+              title: 'First Letter Revealed',
+              description:
+                  'The first letter of each secret word is pre-filled in the word slots at the top of the screen.',
+            ),
+            const SizedBox(height: 16),
+            _buildRuleItem(
               icon: Icons.workspace_premium,
               color: AppColors.mintAccent,
               title: 'Complete the Myst',

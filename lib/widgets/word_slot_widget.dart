@@ -54,15 +54,26 @@ class WordSlotWidget extends StatelessWidget {
               Color boxBgColor = AppColors.containerDark;
               Color boxBorderColor = AppColors.purpleBorder;
               Color charColor = AppColors.purpleLight;
+              double fontSize = 14;
 
               if (isSolved) {
                 displayChar = char;
                 boxBgColor = AppColors.greenSolvedDark;
                 boxBorderColor = AppColors.mintAccent;
                 charColor = AppColors.greenLightText;
+                fontSize = 14;
+              } else if (index == 0) {
+                displayChar = char;
+                boxBgColor = AppColors.containerDark;
+                boxBorderColor = AppColors.purpleBorder;
+                charColor = AppColors.purpleLight;
+                fontSize = 14;
               } else {
                 displayChar = '•';
+                boxBgColor = AppColors.containerDark;
+                boxBorderColor = AppColors.purpleBorder;
                 charColor = AppColors.purpleAccent;
+                fontSize = 11;
               }
 
               return Container(
@@ -80,7 +91,7 @@ class WordSlotWidget extends StatelessWidget {
                     displayChar,
                     style: TextStyle(
                       color: charColor,
-                      fontSize: isSolved ? 14 : 11,
+                      fontSize: fontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
