@@ -174,7 +174,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                           'LEVEL $currentLevelId',
                           style: TextStyle(
                             color: currentLevelColor,
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
                           ),
@@ -190,11 +190,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                         ),
                         child: Text(
                           currentLevel.category,
-                          style: const TextStyle(
-                            color: AppColors.purpleLight,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppTextStyles.levelCardNumber
                         ),
                       ),
                     ],
@@ -202,20 +198,12 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                   const SizedBox(height: 12),
                   Text(
                     currentLevel.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.levelCardTitle
                   ),
                   const SizedBox(height: 6),
                   Text(
                     currentLevel.description,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
+                    style: AppTextStyles.levelCardSubtitle
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
@@ -226,7 +214,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       label: Text(
                         'START LEVEL $currentLevelId',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.8,
                         ),

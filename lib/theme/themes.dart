@@ -132,7 +132,7 @@ abstract class AppTextStyles {
 
   static const TextStyle levelCardTitle = TextStyle(
     color: Colors.white,
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: FontWeight.bold,
   );
 
