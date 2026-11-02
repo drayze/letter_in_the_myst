@@ -120,13 +120,13 @@ abstract class AppTextStyles {
 
   static const TextStyle bestScoreBanner = TextStyle(
     color: AppColors.purpleLight,
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: FontWeight.bold,
   );
 
   static const TextStyle levelCardNumber = TextStyle(
     color: AppColors.purpleLight,
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: FontWeight.bold,
   );
 
@@ -138,7 +138,7 @@ abstract class AppTextStyles {
 
   static const TextStyle levelCardSubtitle = TextStyle(
     color: Colors.white60,
-    fontSize: 12,
+    fontSize: 14,
   );
 
   static const TextStyle levelCardScore = TextStyle(
@@ -149,7 +149,7 @@ abstract class AppTextStyles {
 
   static const TextStyle statLabel = TextStyle(
     color: Colors.white54,
-    fontSize: 11,
+    fontSize: 14,
   );
 
   static const TextStyle statValue = TextStyle(
