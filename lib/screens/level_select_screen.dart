@@ -28,20 +28,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
     setState(() {});
   }
 
-  void _openRandomLevel() async {
-    final currentLevelId = ScoreManager().currentLevelId;
-    final randomLevel = LevelsData.getRandomLevel(currentLevelId);
-
-    await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GameScreen(level: randomLevel),
-      ),
-    );
-
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     final totalScore = ScoreManager().totalScore;
@@ -263,29 +249,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
 
             const SizedBox(height: 20),
 
-            // Secondary Option: Endless Myst Challenge
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _openRandomLevel,
-                icon: const Icon(Icons.all_inclusive, size: 20),
-                label: const Text(
-                  'PLAY RANDOM ENDLESS MYST',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.purpleLight,
-                  side: const BorderSide(color: AppColors.purpleBorder, width: 1.5),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
