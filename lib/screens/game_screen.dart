@@ -49,6 +49,7 @@ class _GameScreenState extends State<GameScreen>
   int _score = 0;
   int _timeInSeconds = 0;
   Timer? _timer;
+  Timer? _feedbackTimer;
   String? _feedbackMessage;
   bool _isLevelCompleted = false;
 
@@ -75,12 +76,39 @@ class _GameScreenState extends State<GameScreen>
   @override
   void dispose() {
     _timer?.cancel();
+    _feedbackTimer?.cancel();
     _flightController.dispose();
     super.dispose();
   }
 
+  void _setFeedbackMessage(String message) {
+    _feedbackTimer?.cancel();
+    setState(() {
+      _feedbackMessage = message;
+    });
+    _feedbackTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _feedbackMessage = null;
+        });
+      }
+    });
+  }
+
+  void _clearFeedbackMessage() {
+    _feedbackTimer?.cancel();
+    _feedbackTimer = null;
+    if (_feedbackMessage != null) {
+      setState(() {
+        _feedbackMessage = null;
+      });
+    }
+  }
+
   void _initLevel(Level level) {
     _timer?.cancel();
+    _feedbackTimer?.cancel();
+    _feedbackTimer = null;
     _currentLevel = level;
     _isLevelCompleted = false;
     _timeInSeconds = 0;
@@ -243,8 +271,8 @@ class _GameScreenState extends State<GameScreen>
       }
 
       _arrangeTilesOnCircle();
-      _feedbackMessage = 'Wheel scrambled!';
     });
+    _setFeedbackMessage('Wheel scrambled!');
   }
 
   // Touch & Gesture Line Drawing
@@ -286,7 +314,7 @@ class _GameScreenState extends State<GameScreen>
         if (_selectedTiles.isEmpty) {
           _selectedTiles.add(touchedTile);
           touchedTile.isSelected = true;
-          _feedbackMessage = null;
+          _clearFeedbackMessage();
         } else {
           if (_selectedTiles.length > 1 &&
               _selectedTiles[_selectedTiles.length - 2] == touchedTile) {
@@ -341,7 +369,7 @@ class _GameScreenState extends State<GameScreen>
       }
 
       _score += guess.length * 100;
-      _feedbackMessage = '✨ Solved "${matchedWord.word}"!';
+      _setFeedbackMessage('✨ Solved "${matchedWord.word}"!');
       _selectedTiles.clear();
       _currentTouchPoint = null;
 
@@ -366,13 +394,13 @@ class _GameScreenState extends State<GameScreen>
       final bool alreadySolved =
           _targetWords.any((w) => w.isSolved && w.word == guess);
 
-      setState(() {
-        if (alreadySolved) {
-          _feedbackMessage = 'Already found "$guess"!';
-        } else if (guess.length >= 2) {
-          _feedbackMessage = '"$guess" is not a secret word.';
-        }
+      if (alreadySolved) {
+        _setFeedbackMessage('Already found "$guess"!');
+      } else if (guess.length >= 2) {
+        _setFeedbackMessage('"$guess" is not a secret word.');
+      }
 
+      setState(() {
         for (var tile in _selectedTiles) {
           tile.isSelected = false;
         }
@@ -461,9 +489,9 @@ class _GameScreenState extends State<GameScreen>
       }
       _hintsRemaining--;
       _score = (_score - hintCost).clamp(0, 999999);
-      _feedbackMessage =
-          'Hint (-$hintCost pts): Word #${unsolvedWordIdx + 1} contains "$neededLetter"!';
     });
+    _setFeedbackMessage(
+        'Hint (-$hintCost pts): Word #${unsolvedWordIdx + 1} contains "$neededLetter"!');
   }
 
   void _handleLevelCompleted() async {
@@ -754,14 +782,20 @@ class _GameScreenState extends State<GameScreen>
                   ),
                 ),
 
-                if (_feedbackMessage != null && _feedbackMessage!.isNotEmpty)
-                  Padding(
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 100),
+                  opacity:
+                      (_feedbackMessage != null && _feedbackMessage!.isNotEmpty)
+                          ? 1.0
+                          : 0.0,
+                  child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Text(
-                      _feedbackMessage!,
+                      _feedbackMessage ?? '',
                       style: AppTextStyles.warningMessage,
                     ),
                   ),
+                ),
 
                 const SizedBox(height: 4),
 
@@ -769,7 +803,7 @@ class _GameScreenState extends State<GameScreen>
                 Expanded(
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(11.0),
                       child: AspectRatio(
                         aspectRatio: 1.0,
                         child: Container(
