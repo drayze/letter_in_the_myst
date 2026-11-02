@@ -492,8 +492,6 @@ class _GameScreenState extends State<GameScreen>
 
   @override
   Widget build(BuildContext context) {
-    final int remainingLetters =
-        _allTiles.where((t) => !t.isUsed).length;
     final currentWordText = _selectedTiles.map((t) => t.letter).join();
     final accumulatedTotal = ScoreManager().totalScore + _score;
 
@@ -586,7 +584,7 @@ class _GameScreenState extends State<GameScreen>
                   ),
                 ),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: 16),
 
                 // Stats & Controls Row
                 Padding(
@@ -595,38 +593,6 @@ class _GameScreenState extends State<GameScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     spacing: 10.0,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Unsolved: $remainingLetters',
-                            style: const TextStyle(
-                              color: AppColors.purpleLight,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (_wordQueue.isNotEmpty) ...[
-                            const SizedBox(width: 52),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.purpleBorder.withAlpha(150),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'Queue: ${_wordQueue.length}',
-                                style: const TextStyle(
-                                  color: AppColors.goldAccent,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],],
-                      ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
@@ -634,19 +600,20 @@ class _GameScreenState extends State<GameScreen>
                               ElevatedButton.icon(
                                 onPressed: _shuffleWheel,
                                 icon: const Icon(Icons.shuffle_rounded,
-                                    color: AppColors.purpleLight, size: 20),
-                                label: const Text('Shuffle'),
+                                    color: AppColors.greenLightText, size: 30),
+                                label: const Text('Shuffle',
+                                style: AppTextStyles.statValue,),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.purpleAccent,
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor: AppColors.containerDark,
                                   disabledForegroundColor: Colors.white24,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 10.0, vertical: 4.0),
+                                      horizontal: 45.0, vertical: 4.0),
                                   minimumSize: Size.zero,
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
                               ),
