@@ -8,7 +8,9 @@ class LevelsData {
       'LEAF', 'TREE', 'MOSS', 'FERN', 'WOOD', 'ROOT', 'BARK', 'STEM',
       'VINE', 'SEED', 'FLORA', 'GROVE', 'PINES', 'SHADE', 'BRANCH',
       'TRUNK', 'BLOOM', 'PLANT', 'FOREST', 'BUD', 'BROOK', 'RIVER',
-      'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SURF', 'POND'
+      'STREAM', 'OCEAN', 'WAVE', 'RAIN', 'FLOW', 'SURF', 'POND', 'MIST',
+      'MUSHROOM', 'FUNGI', 'SEA', 'MOUNTAIN', 'FLOWER', 'FAUNA', 'SEASON',
+      'CLOUD', 'SOIL', 'DUSK', 'DAWN',
     ],
     'Wisdom': [
       'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISDOM', 'MIST',
@@ -17,7 +19,7 @@ class LevelsData {
       'KNOWLEDGE', 'TEACH'
     ],
     'Cosmic': [
-      'STAR', 'MOON', 'GLOW', 'DUSK', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
+      'STAR', 'MOON', 'GLOW', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
       'SOLAR', 'NEBULA', 'GALAXY', 'ORBIT', 'COMET', 'NOVA', 'PLANET',
       'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'METEOR', 'HALO',
       'GRAVITY',
@@ -30,25 +32,32 @@ class LevelsData {
     'Sorcery': [
       'MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HEX', 'BREW', 'HERB',
       'RELIC', 'CURSE', 'ORB', 'MANA', 'ELIXIR', 'POTION', 'WITCH',
-      'WIZARD', 'MYSTIC', 'ARCANE', 'TRICK', 'RITUAL', 'STAFF'
-    ],
-    'Mystery': [
+      'WIZARD', 'MYSTIC', 'ARCANE', 'TRICK', 'RITUAL', 'STAFF',
+      'CAULDRON', 'NIGHT', 'MASK', 'MIRAGE', 'GLOOM',
+      'SHADE', 'DREAM', 'VISION', 'VEIL',  'FOG', 'CLOAK', 'SPIRIT',
+      'SOUL', 'LOST', 'WHISPER', 'TEMPLE', 'MAGIC',
       'CIPHER', 'PUZZLE', 'MYSTERY', 'CRYPT', 'LOCK', 'RUNE', 'KEY',
       'CODE', 'VAULT', 'SECRET', 'RIDDLE', 'MASK', 'GHOST', 'PHANTOM',
       'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR',
-      'WHISPER', 'TEMPLE', 'MAGIC',
       'SHRINE', 'LEGEND',  'ARCANE', 'SPIRIT', 'CROWN'
     ],
     'Science': [
-      'POTION', 'BREW', 'FLASK', 'HERB', 'ROOT', 'MIST',
-      'SPELL', 'BOIL', 'VIAL', 'MAGIC', 'ACID', 'VAPOR', 'MIX',
-      'TOXIN', 'LAB', 'ATOM', 'BOND', 'CELL', 'FORM', 'HEAT'
+      'FLASK', 'ECHO', 'WEATHER', 'BASE', 'NOTES', 'THEORY', 'FACT',
+      'BOIL', 'VIAL', 'ACID', 'VAPOR', 'MIX', 'SOLVE', 'EQUATION',
+      'TOXIN', 'LAB', 'ATOM', 'BOND', 'CELL', 'FORM', 'HEAT',
+      'MOLECULE', 'DNA', 'ENERGY', 'VOLUME', 'ELECTRIC', 'ELECTRODE',
+      'SOLUTION', 'REACTION', 'FINDINGS', 'CONDUCTOR', 'FUSE', 'ELEMENTS',
     ],
-    'Illusion': [
-      'SHADOW', 'SECRET', 'RIDDLE', 'CAULDRON', 'DARK', 'MIST', 'NIGHT',
-      'PHANTOM', 'RUNE', 'CRYPT', 'VAULT', 'MASK', 'MIRAGE', 'GLOOM',
-      'SHADE', 'DREAM', 'VISION', 'VEIL', 'ECHO', 'FOG', 'CLOAK', 'SPIRIT',
-      'SOUL', 'LOST',
+    'Animals': [
+      'BEAR', 'HAWK', 'TROUT', 'DOG', 'FELINE', 'CAT', 'PANDA', 'LION',
+      'WOLF', 'COYOTE', 'EAGLE', 'CARDINAL', 'HORSE', 'WHALE',
+      'BLUEJAY', 'KANGAROO', 'SKUNK', 'RACOON', 'PRIMATE', 'TIGER',
+      'COUGAR', 'SNAKE', 'HOUND', 'FROG', 'BUTTERFLY', 'SPIDER', 'LIZARD',
+      'BLUEHEELER', 'GRIZZLY', 'MIXBREED', 'RABBIT', 'SQUIRREL', 'MOUSE',
+      'GECKO', 'COBRA', 'ELK', 'MOOSE', 'GOOSE', 'TURKEY', 'PIGEON',
+      'SALMON', 'SHARK', 'TORTOISE', 'TURTLE', 'FAWN', 'CUB', 'PUP', 'KITTEN',
+      'DEER', 'FINCH', 'BEE', 'HUMMINGBIRD', 'ELEPHANT', 'LAMB', 'PUMA',
+      'BAT', 'BARNOWL', 'TOAD', 'MOLE',
     ],
   };
 
@@ -109,7 +118,7 @@ class LevelsData {
     LevelConfig(8, 'Forgotten Vault', 'Mystery', 'Decode the ancient lock where every tile plays its part.'),
     LevelConfig(9, 'Alchemy Lab', 'Science', 'Mix glowing concoctions of scrambled golden runes.'),
     LevelConfig(10, 'Cosmic Nebula', 'Cosmic', 'Stardust particles align to form celestial mysteries.'),
-    LevelConfig(11, 'Shadow Realm', 'Illusion', 'Darkness parts when you reveal the true words of the mist.'),
+    LevelConfig(11, 'Shadow Realm', 'Animals', 'Darkness parts when you reveal the true words of the mist.'),
     LevelConfig(12, 'Grand Sanctuary', 'Mystery', 'The ultimate test of letters in the myst.'),
   ];
 
