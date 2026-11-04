@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/themes.dart';
 
 class HowToPlayDialog extends StatelessWidget {
   const HowToPlayDialog({super.key});
@@ -6,10 +7,10 @@ class HowToPlayDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF10002B),
+      backgroundColor: AppColors.scaffoldBackground,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: const BorderSide(color: Color(0xFF7B2CBF), width: 1.5),
+        side: const BorderSide(color: AppColors.purpleAccent, width: 1.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -19,19 +20,14 @@ class HowToPlayDialog extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.auto_awesome,
-                  color: Color(0xFFFFD700),
+                 Icon( Icons.play_arrow_outlined,
+                  color: AppColors.goldAccent,
                   size: 28,
                 ),
                 const SizedBox(width: 10),
                 const Text(
                   'How To Play',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.dialogTitle,
                 ),
                 const Spacer(),
                 IconButton(
@@ -40,37 +36,37 @@ class HowToPlayDialog extends StatelessWidget {
                 )
               ],
             ),
-            const Divider(color: Color(0xFF3C096C), height: 24),
+            const Divider(color: AppColors.darkPurpleBorder, height: 24),
             _buildRuleItem(
-              icon: Icons.grid_view_rounded,
-              color: const Color(0xFFE0AAFF),
-              title: 'Every Letter Counts!',
+              icon: Icons.gesture,
+              color: AppColors.activeCyan,
+              title: 'Trace Circular Wheel',
               description:
-                  'All the letters displayed on screen belong to one of the secret words. There are no junk or filler letters!',
+                  'Drag your finger across letters on the circular wheel. A glowing colored line will trace your word!',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
-              icon: Icons.spellcheck,
-              color: const Color(0xFF74C69D),
-              title: 'Form Hidden Words',
+              icon: Icons.all_inclusive,
+              color: AppColors.purpleLight,
+              title: '100% Target Letters',
               description:
-                  'Tap letters from the scramble pool to form a word, then press SUBMIT to uncover it.',
+                  'Every single letter on the wheel belongs to one of the secret words needed to solve the puzzle.',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
-              icon: Icons.lightbulb,
-              color: const Color(0xFFFFD700),
-              title: 'Use Hints & Shuffles',
+              icon: Icons.start_rounded,
+              color: AppColors.goldAccent,
+              title: 'First Letter Revealed',
               description:
-                  'Stuck? Tap Shuffle to reorganize the letter pool or use a Hint to reveal a letter slot!',
+                  'The first letter of each secret word is pre-filled in the word slots at the top of the screen.',
             ),
             const SizedBox(height: 16),
             _buildRuleItem(
               icon: Icons.workspace_premium,
-              color: const Color(0xFFFF9E00),
+              color: AppColors.mintAccent,
               title: 'Complete the Myst',
               description:
-                  'When all target words are solved, 100% of the visible letter tiles will be consumed and the puzzle is solved!',
+                  'Solve all secret words to unlock the power of your mind and deep relaxation.',
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -78,7 +74,7 @@ class HowToPlayDialog extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7B2CBF),
+                  backgroundColor: AppColors.purpleAccent,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
