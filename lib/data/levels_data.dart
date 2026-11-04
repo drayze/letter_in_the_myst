@@ -4,7 +4,7 @@ import '../models/level.dart';
 class LevelsData {
   /// Categorized word database
   static const Map<String, List<String>> categoryWordBank = {
-    'Nature': [
+    'Nature World': [
       'LEAF', 'TREE', 'MOSS', 'FERN', 'WOOD', 'ROOT', 'BARK', 'STEM',
       'VINE', 'SEED', 'FLORA', 'GROVE', 'PINES', 'SHADE', 'BRANCH',
       'TRUNK', 'BLOOM', 'PLANT', 'FOREST', 'BUD', 'BROOK', 'RIVER',
@@ -12,24 +12,24 @@ class LevelsData {
       'MUSHROOM', 'FUNGI', 'SEA', 'MOUNTAIN', 'FLOWER', 'FAUNA', 'SEASON',
       'CLOUD', 'SOIL', 'DUSK', 'DAWN',
     ],
-    'Wisdom': [
+    'Wisdom Tools': [
       'BOOK', 'RUNE', 'TOME', 'PAGE', 'TEXT', 'READ', 'WISDOM', 'MIST',
       'SCROLL', 'QUILL', 'SHELF', 'INK', 'MIND', 'LOGIC', 'WORD',
       'FACT', 'LORE', 'LEARN', 'TRUTH', 'GUIDE', 'STUDY',
       'KNOWLEDGE', 'TEACH'
     ],
-    'Cosmic': [
+    'Celestial Wonders': [
       'STAR', 'MOON', 'GLOW', 'BEAM', 'RAY', 'ASTRAL', 'LUNAR',
       'SOLAR', 'NEBULA', 'GALAXY', 'ORBIT', 'COMET', 'NOVA', 'PLANET',
       'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'METEOR', 'HALO',
       'GRAVITY',
     ],
-    'Elements': [
+    '': [
       'GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'COIN', 'ORE', 'MINE',
       'CAVE', 'JADE', 'ROCK', 'GLINT', 'SHINE', 'CRYSTAL', 'QUARTZ',
       'AMBER', 'SILVER', 'PEARL', 'JEWEL', 'FLINT', 'COPPER', 'IRON'
     ],
-    'Sorcery': [
+    'Sorcery of the Ancestors ': [
       'MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HEX', 'BREW', 'HERB',
       'RELIC', 'CURSE', 'ORB', 'MANA', 'ELIXIR', 'POTION', 'WITCH',
       'WIZARD', 'MYSTIC', 'ARCANE', 'TRICK', 'RITUAL', 'STAFF',
@@ -41,14 +41,14 @@ class LevelsData {
       'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR',
       'SHRINE', 'LEGEND',  'ARCANE', 'SPIRIT', 'CROWN'
     ],
-    'Science': [
+    'Scientific Findings': [
       'FLASK', 'ECHO', 'WEATHER', 'BASE', 'NOTES', 'THEORY', 'FACT',
       'BOIL', 'VIAL', 'ACID', 'VAPOR', 'MIX', 'SOLVE', 'EQUATION',
       'TOXIN', 'LAB', 'ATOM', 'BOND', 'CELL', 'FORM', 'HEAT',
       'MOLECULE', 'DNA', 'ENERGY', 'VOLUME', 'ELECTRIC', 'ELECTRODE',
       'SOLUTION', 'REACTION', 'FINDINGS', 'CONDUCTOR', 'FUSE', 'ELEMENTS',
     ],
-    'Animals': [
+    'Animals of the World': [
       'BEAR', 'HAWK', 'TROUT', 'DOG', 'FELINE', 'CAT', 'PANDA', 'LION',
       'WOLF', 'COYOTE', 'EAGLE', 'CARDINAL', 'HORSE', 'WHALE',
       'BLUEJAY', 'KANGAROO', 'SKUNK', 'RACOON', 'PRIMATE', 'TIGER',
