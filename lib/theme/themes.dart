@@ -9,7 +9,6 @@ abstract class AppColors {
   static const Color surfaceDark = Color(0xFF10002B);
   static const Color containerDark = Color(0xFF240046);
   static const Color boardBackground = Color(0xFF140032);
-  static const Color idleTileBackground = Color(0xFF241442);
   static const Color usedTileBackground = Color(0xFF381460);
 
   // --- Purple Brand & Accents ---
@@ -17,10 +16,8 @@ abstract class AppColors {
   static const Color darkPurpleBorder = Color(0xFF3C096C);
   static const Color purpleBorder = Color(0xFF5A189A);
   static const Color purpleAccent = Color(0xFF7B2CBF);
-  static const Color purpleBright = Color(0xFF9D4EDD);
   static const Color purpleLight = Color(0xFFE0AAFF);
   static const Color primaryPink = Color(0xFFBF2C78);
-  static const Color idleTileBorder = Color(0xFF5E548E);
   static const Color bubbleTileBorder = Color(0xFF8A50C0);
 
   // --- Mint / Green / Solved States ---
@@ -34,13 +31,6 @@ abstract class AppColors {
   // --- Gold / Yellow / Warning ---
   static const Color goldAccent = Color(0xFFFFD700);
   static const Color warningOrange = Color(0xFFFF9E00);
-  static const Color goldLight = Color(0xFFFFE57F);
-
-  // --- 3D Cube & Blank Cube Colors ---
-  static const Color blankCubeFill = Color(0xFF1B0D3A);
-  static const Color blankCubeBorder = Color(0xFF3B1E6D);
-  static const Color cubeBevelLight = Color(0x60FFFFFF);
-  static const Color cubeBevelDark = Color(0x60000000);
 
   // --- Cyan / Active Selection ---
   static const Color activeCyan = Color(0xFF00F5D4);
@@ -54,7 +44,6 @@ abstract class AppColors {
     Color(0xFF74C69D), // Mint
     Color(0xFF3A86FF), // Blue
   ];
-
 }
 
 /// Centralized gradients for UI backgrounds, cauldrons, and tiles
@@ -64,7 +53,6 @@ abstract class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-
 
   static RadialGradient bubbleTile(Color bubbleColor) {
     return RadialGradient(
@@ -76,17 +64,6 @@ abstract class AppGradients {
         Color.alphaBlend(Colors.black.withAlpha(80), bubbleColor),
       ],
       stops: const [0.0, 0.65, 1.0],
-    );
-  }
-
-  static LinearGradient tileGradient(Color bgColor) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        bgColor,
-        Color.alphaBlend(Colors.white.withAlpha(20), bgColor),
-      ],
     );
   }
 }
@@ -105,21 +82,8 @@ abstract class AppTextStyles {
     letterSpacing: 1.0,
   );
 
-  static const TextStyle sectionTitle = TextStyle(
-    color: AppColors.purpleLight,
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    letterSpacing: 0.5,
-  );
-
   static const TextStyle totalScoreBanner = TextStyle(
     color: AppColors.mintAccent,
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
-  );
-
-  static const TextStyle bestScoreBanner = TextStyle(
-    color: AppColors.purpleLight,
     fontSize: 16,
     fontWeight: FontWeight.bold,
   );
@@ -158,10 +122,6 @@ abstract class AppTextStyles {
     fontWeight: FontWeight.bold,
   );
 
-  static const TextStyle buttonBold = TextStyle(
-    fontWeight: FontWeight.bold,
-  );
-
   static const TextStyle activeWordBanner = TextStyle(
     color: AppColors.greenDarkText,
     fontSize: 18,
@@ -192,12 +152,6 @@ abstract class AppTextStyles {
     color: AppColors.purpleLight,
     fontSize: 15,
     fontWeight: FontWeight.w500,
-  );
-
-  static const TextStyle emptyTrayPlaceholder = TextStyle(
-    color: AppColors.purpleAccent,
-    fontSize: 13,
-    fontStyle: FontStyle.italic,
   );
 }
 
