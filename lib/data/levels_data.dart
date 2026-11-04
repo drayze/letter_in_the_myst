@@ -24,22 +24,22 @@ class LevelsData {
       'SPACE', 'COSMO', 'VENUS', 'PULSAR', 'ZENITH', 'METEOR', 'HALO',
       'GRAVITY',
     ],
-    '': [
+    'Earthy Pieces': [
       'GEM', 'RUBY', 'MIST', 'STONE', 'GOLD', 'COIN', 'ORE', 'MINE',
       'CAVE', 'JADE', 'ROCK', 'GLINT', 'SHINE', 'CRYSTAL', 'QUARTZ',
       'AMBER', 'SILVER', 'PEARL', 'JEWEL', 'FLINT', 'COPPER', 'IRON'
     ],
-    'Sorcery of the Ancestors ': [
+    'Sorcery of the Ancestors': [
       'MAGIC', 'SPELL', 'WAND', 'CHARM', 'AURA', 'HEX', 'BREW', 'HERB',
       'RELIC', 'CURSE', 'ORB', 'MANA', 'ELIXIR', 'POTION', 'WITCH',
       'WIZARD', 'MYSTIC', 'ARCANE', 'TRICK', 'RITUAL', 'STAFF',
       'CAULDRON', 'NIGHT', 'MASK', 'MIRAGE', 'GLOOM',
-      'SHADE', 'DREAM', 'VISION', 'VEIL',  'FOG', 'CLOAK', 'SPIRIT',
-      'SOUL', 'LOST', 'WHISPER', 'TEMPLE', 'MAGIC',
+      'SHADE', 'DREAM', 'VISION', 'VEIL', 'FOG', 'CLOAK', 'SPIRIT',
+      'SOUL', 'LOST', 'WHISPER', 'TEMPLE',
       'CIPHER', 'PUZZLE', 'MYSTERY', 'CRYPT', 'LOCK', 'RUNE', 'KEY',
-      'CODE', 'VAULT', 'SECRET', 'RIDDLE', 'MASK', 'GHOST', 'PHANTOM',
+      'CODE', 'VAULT', 'SECRET', 'RIDDLE', 'GHOST', 'PHANTOM',
       'ENIGMA', 'HIDDEN', 'SHADOW', 'CLUE', 'DARK', 'GIFT', 'DOOR',
-      'SHRINE', 'LEGEND',  'ARCANE', 'SPIRIT', 'CROWN'
+      'SHRINE', 'LEGEND', 'CROWN'
     ],
     'Scientific Findings': [
       'FLASK', 'ECHO', 'WEATHER', 'BASE', 'NOTES', 'THEORY', 'FACT',
@@ -61,7 +61,7 @@ class LevelsData {
     ],
   };
 
-  /// Master word database containing all words across all categories
+  /// Master word database containing all unique words across all categories
   static List<String> get masterWordDatabase {
     final Set<String> all = {};
     for (var list in categoryWordBank.values) {
@@ -70,126 +70,78 @@ class LevelsData {
     return all.toList();
   }
 
-  /// Generates a random selection of 6 to 8 unique words from a word bank
-  static List<String> getRandomWordsForLevel({
-    String? category,
-    int? count,
-    Random? random,
-  }) {
-    final rand = random ?? Random();
-    final int targetCount = count ?? (6 + rand.nextInt(3)); // 6, 7, or 8 words
+  // Cache for generated levels by level ID
+  static final Map<int, Level> _levelCache = {};
 
-    final List<String> pool = [];
-    if (category != null && categoryWordBank.containsKey(category)) {
-      pool.addAll(categoryWordBank[category]!);
-    } else {
-      pool.addAll(masterWordDatabase);
-    }
+  // Per-category tracking of words that have been used
+  static final Map<String, Set<String>> _usedWordsPerCategory = {};
 
-    pool.shuffle(rand);
-    final Set<String> selected = {};
+  /// Resets the internal level cache and word usage state.
+  static void resetState() {
+    _levelCache.clear();
+    _usedWordsPerCategory.clear();
+  }
 
-    for (var w in pool) {
-      selected.add(w);
-      if (selected.length >= targetCount) break;
-    }
+  /// Retrieves or generates a Level instance for any level ID (1, 2, 3...)
+  static Level getLevel(int id) {
+    if (id < 1) id = 1;
 
-    // Fallback if pool was small
-    if (selected.length < targetCount) {
-      final master = masterWordDatabase..shuffle(rand);
-      for (var w in master) {
-        selected.add(w);
-        if (selected.length >= targetCount) break;
+    // Ensure all levels up to [id] are generated sequentially so word usage
+    // tracking progresses systematically without missing or repeating words prematurely.
+    for (int k = 1; k <= id; k++) {
+      if (!_levelCache.containsKey(k)) {
+        _levelCache[k] = _generateLevel(k);
       }
     }
 
-    return selected.toList();
+    return _levelCache[id]!;
   }
 
-  /// Story levels configuration definitions
-  static final List<LevelConfig> storyLevelConfigs = [
-    LevelConfig(1, 'Mystic Grove', 'Nature', 'Unscramble the secrets hidden within the enchanted grove.'),
-    LevelConfig(2, 'Ancient Library', 'Wisdom', 'Dusty scrolls hold forgotten letters waiting to be revealed.'),
-    LevelConfig(3, 'Celestial Night', 'Cosmic', 'Look to the night sky to find the glowing starlight words.'),
-    LevelConfig(4, 'Crystal Cavern', 'Elements', 'Reflective crystals shatter into letters among the shadows.'),
-    LevelConfig(5, 'Arcane Sanctum', 'Sorcery', 'Weave mystical runes into words of pure spellcraft.'),
-    LevelConfig(6, 'Whispering River', 'Nature', 'Flowing waters swirl letters across the mysterious shore.'),
-    LevelConfig(7, 'Twilight Forest', 'Nature', 'Deep within the woods, ancient trunks whisper their names.'),
-    LevelConfig(8, 'Forgotten Vault', 'Mystery', 'Decode the ancient lock where every tile plays its part.'),
-    LevelConfig(9, 'Alchemy Lab', 'Science', 'Mix glowing concoctions of scrambled golden runes.'),
-    LevelConfig(10, 'Cosmic Nebula', 'Cosmic', 'Stardust particles align to form celestial mysteries.'),
-    LevelConfig(11, 'Shadow Realm', 'Animals', 'Darkness parts when you reveal the true words of the mist.'),
-    LevelConfig(12, 'Grand Sanctuary', 'Mystery', 'The ultimate test of letters in the myst.'),
-  ];
+  /// Generates level [k] by pulling 6, 7, or 8 words from one category
+  /// while ensuring used words are tracked and not reused until all words in that category are used.
+  static Level _generateLevel(int k) {
+    final categories = categoryWordBank.keys.toList();
+    final String categoryName = categories[(k - 1) % categories.length];
 
-  /// Get static list of story levels
-  static List<Level> get levels {
-    return storyLevelConfigs.map((config) {
-      return getLevelForConfig(config);
-    }).toList();
-  }
+    // Unique words in this category
+    final List<String> categoryWords =
+        (categoryWordBank[categoryName] ?? []).toSet().toList();
 
-  /// Retrieves a Level instance for any level ID (1, 2, 3 ... 13, 14, 15 ... infinitely)
-  static Level getLevel(int id) {
-    if (id >= 1 && id <= storyLevelConfigs.length) {
-      return getLevelForConfig(storyLevelConfigs[id - 1], id * 997);
+    // Determine target word count (6, 7, or 8 words) for this level
+    final rand = Random(k * 997);
+    final int targetCount = 6 + rand.nextInt(3);
+
+    // Track used words for this category
+    final Set<String> used =
+        _usedWordsPerCategory.putIfAbsent(categoryName, () => <String>{});
+
+    // Filter words in this category that haven't been used yet
+    List<String> unusedWords =
+        categoryWords.where((w) => !used.contains(w)).toList();
+
+    // If unused words in this category are fewer than target count,
+    // all (or almost all) words in this category have been used.
+    // Reset this category's used set so all words become available again.
+    if (unusedWords.length < targetCount) {
+      used.clear();
+      unusedWords = List.from(categoryWords);
     }
 
-    // For levels beyond 12 (level 13, 14, 15, 100...), generate endless thematic levels
-    final configIndex = (id - 1) % storyLevelConfigs.length;
-    final baseConfig = storyLevelConfigs[configIndex];
-    final chapter = ((id - 1) ~/ storyLevelConfigs.length) + 1;
+    // Shuffle unused words for this level
+    unusedWords.shuffle(rand);
 
-    final String name = chapter > 1 ? '${baseConfig.name} $chapter' : baseConfig.name;
-    final words = getRandomWordsForLevel(
-      category: baseConfig.category,
-      random: Random(id * 997),
-    );
+    // Pick 6, 7, or 8 words
+    final List<String> selectedWords = unusedWords.take(targetCount).toList();
+
+    // Mark these words as used for this category
+    used.addAll(selectedWords);
 
     return Level(
-      id: id,
-      name: name,
-      category: baseConfig.category,
-      words: words,
-      description: 'Chapter $chapter: ${baseConfig.description}',
+      id: k,
+      name: categoryName,
+      category: categoryName,
+      words: selectedWords,
+      description: 'Unscramble secret words from $categoryName.',
     );
   }
-
-  /// Creates a Level instance with 6 to 8 words randomly pulled from the word database
-  static Level getLevelForConfig(LevelConfig config, [int? seed]) {
-    final rand = seed != null ? Random(seed) : Random();
-    final words = getRandomWordsForLevel(
-      category: config.category,
-      random: rand,
-    );
-
-    return Level(
-      id: config.id,
-      name: config.name,
-      category: config.category,
-      words: words,
-      description: config.description,
-    );
-  }
-
-  /// Get random endless level with 6-8 words pulled from word database
-  static Level getRandomLevel(int id) {
-    final words = getRandomWordsForLevel();
-    return Level(
-      id: id,
-      name: 'Mystic Challenge #$id',
-      category: 'Endless Myst',
-      words: words,
-      description: 'A newly summoned puzzle of ${words.length} secret words!',
-    );
-  }
-}
-
-class LevelConfig {
-  final int id;
-  final String name;
-  final String category;
-  final String description;
-
-  const LevelConfig(this.id, this.name, this.category, this.description);
 }
