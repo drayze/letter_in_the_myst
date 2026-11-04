@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 abstract class AppColors {
   // --- Backgrounds & Surfaces ---
   static const Color scaffoldBackground = Color(0xFF10002B);
-  static const Color appBarBackground = Color(0xFF190933);
+  static const Color appBarBackground = Color(0xFF07020E);
   static const Color cardBackground = Color(0xFF190933);
   static const Color surfaceDark = Color(0xFF10002B);
   static const Color containerDark = Color(0xFF240046);
@@ -49,10 +49,17 @@ abstract class AppColors {
 /// Centralized gradients for UI backgrounds, cauldrons, and tiles
 abstract class AppGradients {
   static const LinearGradient headerBanner = LinearGradient(
-    colors: [AppColors.darkPurpleBorder, AppColors.seedPurple],
+    colors: [AppColors.darkPurpleBorder, AppColors.seedPurple, AppColors.greenDarkText,
+    AppColors.greenSolvedBg, AppColors.greenSolved],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+static const LinearGradient scaffoldBackgroundGrade = LinearGradient(
+colors: [AppColors.darkPurpleBorder, AppColors.seedPurple],
+begin: Alignment.topLeft,
+end: Alignment.bottomRight,
+);
 
   static RadialGradient bubbleTile(Color bubbleColor) {
     return RadialGradient(
