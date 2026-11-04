@@ -31,7 +31,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
   @override
   Widget build(BuildContext context) {
     final totalScore = ScoreManager().totalScore;
-    final highScore = ScoreManager().highScore;
     final completedCount = ScoreManager().completedLevelIds.length;
     final wordsSolved = ScoreManager().totalWordsSolved;
     final totalTimeFormatted = ScoreManager().formattedTotalTime;
@@ -106,20 +105,6 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                               style: AppTextStyles.totalScoreBanner,
                             ),
                           ],
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.containerDark,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.purpleBorder),
-                        ),
-                        child: Text(
-                          'BEST: $highScore',
-                          style: AppTextStyles.bestScoreBanner,
                         ),
                       ),
                     ],
