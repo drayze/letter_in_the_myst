@@ -38,7 +38,7 @@ class LetterBubbleWidget extends StatelessWidget {
     } else {
       bubbleColor = AppColors.usedTileBackground.withAlpha(190);
       borderColor = AppColors.bubbleTileBorder;
-      textColor = AppColors.purpleLight;
+      textColor = Colors.white;
       boxShadow = AppShadows.glow(AppColors.bubbleTileBorder, blurRadius: 8, spreadRadius: 1);
     }
 
