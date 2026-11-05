@@ -329,14 +329,7 @@ class _GameScreenState extends State<GameScreen>
 
     if (matchedTarget != null) {
       _clearFeedbackMessage();
-      setState(() {
-        matchedTarget!.isSolved = true;
-        _score += formedWord.length * 15;
-      });
-
-      _triggerFlyingTilesAnimation(matchedIndex, formedWord);
-      _checkReplenishBoard();
-      _checkLevelCompletion();
+      _triggerFlyingTilesAnimation(matchedIndex, formedWord, matchedTarget);
     } else {
       bool isAlreadySolved = false;
       for (var tw in _targetWords) {
@@ -354,7 +347,8 @@ class _GameScreenState extends State<GameScreen>
     }
   }
 
-  void _triggerFlyingTilesAnimation(int wordIndex, String word) {
+  void _triggerFlyingTilesAnimation(
+      int wordIndex, String word, TargetWord targetWord) {
     final List<FlyingTileData> newFlights = [];
     final RenderBox? stackBox =
         _screenStackKey.currentContext?.findRenderObject() as RenderBox?;
@@ -412,8 +406,12 @@ class _GameScreenState extends State<GameScreen>
     _flightController.forward(from: 0.0).then((_) {
       if (mounted) {
         setState(() {
+          targetWord.isSolved = true;
+          _score += word.length * 15;
           _activeFlyingTiles.clear();
         });
+        _checkReplenishBoard();
+        _checkLevelCompletion();
       }
     });
   }
