@@ -13,6 +13,18 @@ import '../widgets/victory_dialog.dart';
 import '../widgets/word_line_painter.dart';
 import '../widgets/word_slot_widget.dart';
 
+class QueuedWordEntry {
+  final int wordIndex;
+  final String word;
+  final List<String> remainingLetters;
+
+  QueuedWordEntry({
+    required this.wordIndex,
+    required this.word,
+    required this.remainingLetters,
+  });
+}
+
 class GameScreen extends StatefulWidget {
   final Level level;
 
@@ -26,8 +38,7 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late Level _currentLevel;
   late List<TargetWord> _targetWords;
-  late List<TargetWord> _activeBoardWords;
-  late List<TargetWord> _wordQueue;
+  late List<QueuedWordEntry> _queuedWordEntries;
   late List<LetterTile> _allTiles;
 
   final GlobalKey _screenStackKey = GlobalKey();
@@ -116,7 +127,7 @@ class _GameScreenState extends State<GameScreen>
     _activeFlyingTiles.clear();
     _slotKeys.clear();
 
-    // 1. Target Words & Word Queue setup
+    // 1. Target Words setup
     _targetWords = level.words.map((w) => TargetWord(word: w)).toList();
 
     for (int wIdx = 0; wIdx < level.words.length; wIdx++) {
@@ -126,25 +137,22 @@ class _GameScreenState extends State<GameScreen>
       }
     }
 
-    _activeBoardWords = [];
-    _wordQueue = [];
-
-    // Fit words up to ~14 total letters on board; queue remaining words for dynamic replenishment
-    int accumulatedLetters = 0;
-    const maxActiveBoardLetters = 14;
-
-    for (var target in _targetWords) {
-      if (accumulatedLetters + target.word.length <= maxActiveBoardLetters ||
-          _activeBoardWords.isEmpty) {
-        _activeBoardWords.add(target);
-        accumulatedLetters += target.word.length;
-      } else {
-        _wordQueue.add(target);
-      }
+    // 2. Queue remaining letters for all target words
+    _queuedWordEntries = [];
+    for (int i = 0; i < level.words.length; i++) {
+      final word = level.words[i];
+      _queuedWordEntries.add(
+        QueuedWordEntry(
+          wordIndex: i,
+          word: word,
+          remainingLetters: word.split(''),
+        ),
+      );
     }
 
-    // 2. Build initial letter tiles for active board words
-    _buildInitialTiles();
+    // 3. Populate initial tiles on wheel up to capacity (max 14 letters)
+    _allTiles = [];
+    _replenishWheel();
 
     // Start Timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -156,24 +164,31 @@ class _GameScreenState extends State<GameScreen>
     });
   }
 
-  void _buildInitialTiles() {
-    _allTiles = [];
-    int tileCounter = 0;
-    final rand = Random();
+  void _replenishWheel() {
+    const int maxActiveBoardLetters = 14;
+    final activeUnusedCount = _allTiles.where((t) => !t.isUsed).length;
+    int availableSlots = maxActiveBoardLetters - activeUnusedCount;
 
-    final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
+    if (availableSlots <= 0) return;
 
-    // Collect ALL letters across all active board words
-    final List<String> allLetters = [];
-    for (var target in activeUnsolved) {
-      allLetters.addAll(target.word.split(''));
+    final List<String> newLetters = [];
+
+    for (var entry in _queuedWordEntries) {
+      if (availableSlots <= 0) break;
+      if (entry.remainingLetters.isEmpty) continue;
+
+      final int takeCount = min(availableSlots, entry.remainingLetters.length);
+      for (int k = 0; k < takeCount; k++) {
+        newLetters.add(entry.remainingLetters.removeAt(0));
+      }
+      availableSlots -= takeCount;
     }
 
-    // Thoroughly shuffle/scramble all letters together so words intermix
-    allLetters.shuffle(rand);
-    allLetters.shuffle(rand);
+    if (newLetters.isEmpty) return;
 
-    for (var letter in allLetters) {
+    final rand = Random();
+    int tileCounter = _allTiles.length;
+    for (var letter in newLetters) {
       _allTiles.add(
         LetterTile(
           id: 'tile_${tileCounter++}_$letter',
@@ -181,6 +196,12 @@ class _GameScreenState extends State<GameScreen>
         ),
       );
     }
+
+    // Intermix active unused tiles on the wheel
+    final unusedTiles = _allTiles.where((t) => !t.isUsed).toList();
+    unusedTiles.shuffle(rand);
+    final usedTiles = _allTiles.where((t) => t.isUsed).toList();
+    _allTiles = [...usedTiles, ...unusedTiles];
 
     _arrangeTilesOnCircle();
   }
@@ -409,52 +430,11 @@ class _GameScreenState extends State<GameScreen>
           targetWord.isSolved = true;
           _score += word.length * 15;
           _activeFlyingTiles.clear();
+          _replenishWheel();
         });
-        _checkReplenishBoard();
         _checkLevelCompletion();
       }
     });
-  }
-
-  void _checkReplenishBoard() {
-    final activeUnsolved = _activeBoardWords.where((w) => !w.isSolved).toList();
-    if (activeUnsolved.isEmpty && _wordQueue.isNotEmpty) {
-      int addedLetters = 0;
-      const maxBatchLetters = 14;
-
-      final List<TargetWord> newlyAdded = [];
-      while (_wordQueue.isNotEmpty) {
-        final nextTarget = _wordQueue.first;
-        if (addedLetters + nextTarget.word.length <= maxBatchLetters ||
-            newlyAdded.isEmpty) {
-          _wordQueue.removeAt(0);
-          _activeBoardWords.add(nextTarget);
-          newlyAdded.add(nextTarget);
-          addedLetters += nextTarget.word.length;
-        } else {
-          break;
-        }
-      }
-
-      final rand = Random();
-      int tileCounter = _allTiles.length;
-      final List<String> newLetters = [];
-      for (var target in newlyAdded) {
-        newLetters.addAll(target.word.split(''));
-      }
-      newLetters.shuffle(rand);
-
-      for (var letter in newLetters) {
-        _allTiles.add(
-          LetterTile(
-            id: 'tile_${tileCounter++}_$letter',
-            letter: letter,
-          ),
-        );
-      }
-
-      _arrangeTilesOnCircle();
-    }
   }
 
   void _checkLevelCompletion() async {
