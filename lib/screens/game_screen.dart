@@ -220,26 +220,20 @@ class _GameScreenState extends State<GameScreen>
   void _shuffleWheel() {
     _clearFeedbackMessage();
     setState(() {
-      final activeUnused = _allTiles.where((t) => !t.isUsed).toList();
-      activeUnused.shuffle();
-
-      final int count = activeUnused.length;
-      if (count <= 1 || _boardWidth <= 0 || _boardHeight <= 0) return;
-
-      final double size = min(_boardWidth, _boardHeight);
-      final double centerX = _boardWidth / 2;
-      final double centerY = _boardHeight / 2;
-      final double radius = (size / 2) * 0.68;
-
-      final double step = (2 * pi) / count;
-      final double startAngle = -pi / 2;
-
-      for (int i = 0; i < count; i++) {
-        final double angle = startAngle + i * step;
-        final double x = centerX + radius * cos(angle);
-        final double y = centerY + radius * sin(angle);
-        activeUnused[i].centerPosition = Offset(x, y);
+      for (var tile in _selectedTiles) {
+        tile.isSelected = false;
       }
+      _selectedTiles.clear();
+      _currentTouchPoint = null;
+
+      final unusedTiles = _allTiles.where((t) => !t.isUsed).toList();
+      if (unusedTiles.length <= 1) return;
+
+      unusedTiles.shuffle();
+      final usedTiles = _allTiles.where((t) => t.isUsed).toList();
+      _allTiles = [...usedTiles, ...unusedTiles];
+
+      _arrangeTilesOnCircle();
     });
   }
 

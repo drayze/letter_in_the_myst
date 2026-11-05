@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:letters_in_the_myst/data/levels_data.dart';
 import 'package:letters_in_the_myst/main.dart';
+import 'package:letters_in_the_myst/screens/game_screen.dart';
 import 'package:letters_in_the_myst/theme/themes.dart';
 
 void main() {
@@ -46,6 +47,24 @@ void main() {
 
       expect(find.text('Theme: ${theme.categoryName}'), findsOneWidget);
     }
+  });
+
+  testWidgets('Shuffle button triggers wheel re-arrangement without crashing', (WidgetTester tester) async {
+    final level = LevelsData.getLevel(1);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GameScreen(level: level),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final shuffleButton = find.widgetWithText(ElevatedButton, 'Shuffle');
+    expect(shuffleButton, findsOneWidget);
+
+    await tester.tap(shuffleButton);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GameScreen), findsOneWidget);
   });
 
   test('Every level displays category name as level title and has 6 to 8 words', () {
