@@ -521,7 +521,7 @@ class _GameScreenState extends State<GameScreen>
       appBar: AppBar(
         backgroundColor: currentTheme.appBarBackground.withAlpha(220),
         elevation: 0,
-        title: Row(
+        title: Column(
           children: [
             Icon(currentTheme.icon, color: currentTheme.primaryAccent, size: 20),
             const SizedBox(width: 8),
