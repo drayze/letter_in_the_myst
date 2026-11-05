@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:letters_in_the_myst/data/levels_data.dart';
 import 'package:letters_in_the_myst/main.dart';
+import 'package:letters_in_the_myst/theme/themes.dart';
 
 void main() {
   setUp(() {
@@ -14,6 +16,36 @@ void main() {
     // Verify that the title and score header appear.
     expect(find.text('Letters in the Myst'), findsWidgets);
     expect(find.textContaining('TOTAL SCORE'), findsOneWidget);
+  });
+
+  test('Every category has a distinct theme with a custom background definition', () {
+    final categories = LevelsData.categoryWordBank.keys.toList();
+    expect(CategoryThemeData.allThemes.length, equals(7));
+
+    for (final category in categories) {
+      final theme = CategoryThemeData.getTheme(category);
+      expect(theme.categoryName, equals(category));
+      expect(theme.backgroundGradientColors.length, greaterThanOrEqualTo(2));
+      expect(theme.primaryAccent, isNotNull);
+      expect(theme.scaffoldBackground, isNotNull);
+    }
+  });
+
+  testWidgets('ThemeBackgroundWidget renders correctly for each category theme', (WidgetTester tester) async {
+    for (final theme in CategoryThemeData.allThemes) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ThemeBackgroundWidget(
+              theme: theme,
+              child: Text('Theme: ${theme.categoryName}'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Theme: ${theme.categoryName}'), findsOneWidget);
+    }
   });
 
   test('Every level displays category name as level title and has 6 to 8 words', () {

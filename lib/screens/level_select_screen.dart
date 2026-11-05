@@ -13,6 +13,8 @@ class LevelSelectScreen extends StatefulWidget {
 }
 
 class _LevelSelectScreenState extends State<LevelSelectScreen> {
+  String? _selectedCategoryOverride;
+
   void _startCurrentLevel() async {
     final currentLevelId = ScoreManager().currentLevelId;
     final level = LevelsData.getLevel(currentLevelId);
@@ -37,19 +39,23 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
 
     final currentLevelId = ScoreManager().currentLevelId;
     final currentLevel = LevelsData.getLevel(currentLevelId);
-    final currentLevelColor =
-        AppColors.linePalette[(currentLevelId - 1) % AppColors.linePalette.length];
+
+    // Determine active theme (user selected or default to current level theme)
+    final String activeCategoryName =
+        _selectedCategoryOverride ?? currentLevel.category;
+    final CategoryTheme activeTheme =
+        CategoryThemeData.getTheme(activeCategoryName);
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
+        backgroundColor: activeTheme.appBarBackground.withAlpha(220),
         elevation: 0,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.sort_by_alpha_outlined, color: AppColors.goldAccent, size: 22),
-            SizedBox(width: 8),
-            Text(
+            Icon(activeTheme.icon, color: activeTheme.primaryAccent, size: 22),
+            const SizedBox(width: 8),
+            const Text(
               'Letters in the Myst',
               style: AppTextStyles.headerTitle,
             ),
@@ -63,166 +69,271 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                 builder: (context) => const HowToPlayDialog(),
               );
             },
-            icon: const Icon(Icons.help_outline_rounded, color: AppColors.purpleLight),
+            icon: Icon(Icons.help_outline_rounded,
+                color: activeTheme.secondaryAccent),
             tooltip: 'How to play',
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Total Score & Stats Header Card
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                gradient: AppGradients.headerBanner,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.purpleAccent),
-                boxShadow: AppShadows.bannerShadow,
+      body: ThemeBackgroundWidget(
+        theme: activeTheme,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Total Score & Stats Header Card
+              Container(
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: activeTheme.cardBackground.withAlpha(220),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: activeTheme.tileBorderColor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: activeTheme.primaryAccent.withAlpha(50),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: activeTheme.primaryAccent.withAlpha(40),
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: activeTheme.primaryAccent),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.workspace_premium,
+                                  color: activeTheme.primaryAccent, size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                'TOTAL SCORE: $totalScore',
+                                style: TextStyle(
+                                  color: activeTheme.highlightColor,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildHeaderStat('Completed', '$completedCount Levels'),
+                        _buildHeaderStat('Words Solved', '$wordsSolved Words'),
+                        _buildHeaderStat('Total Time', totalTimeFormatted),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
+
+              const SizedBox(height: 20),
+
+              // Theme Selector Section
+              const Text(
+                'THEMES & WORLDS',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 52,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: CategoryThemeData.allThemes.length,
+                  itemBuilder: (context, index) {
+                    final themeItem = CategoryThemeData.allThemes[index];
+                    final isSelected =
+                        themeItem.categoryName == activeTheme.categoryName;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedCategoryOverride = themeItem.categoryName;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(right: 10),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                            horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppColors.goldAccent.withAlpha(50),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.goldAccent),
+                          color: isSelected
+                              ? themeItem.primaryAccent
+                              : themeItem.cardBackground.withAlpha(200),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected
+                                ? themeItem.highlightColor
+                                : themeItem.tileBorderColor.withAlpha(150),
+                            width: isSelected ? 2.0 : 1.0,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color:
+                                        themeItem.primaryAccent.withAlpha(120),
+                                    blurRadius: 10,
+                                  )
+                                ]
+                              : [],
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.workspace_premium,
-                                color: AppColors.goldAccent, size: 16),
-                            const SizedBox(width: 4),
+                            Icon(
+                              themeItem.icon,
+                              size: 18,
+                              color: isSelected
+                                  ? Colors.black87
+                                  : themeItem.primaryAccent,
+                            ),
+                            const SizedBox(width: 8),
                             Text(
-                              'TOTAL SCORE: $totalScore',
-                              style: AppTextStyles.totalScoreBanner,
+                              themeItem.displayName,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.black87
+                                    : Colors.white,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildHeaderStat('Completed', '$completedCount Levels'),
-                      _buildHeaderStat('Words Solved', '$wordsSolved Words'),
-                      _buildHeaderStat('Total Time', totalTimeFormatted),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Current Level Progress Hero Card
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: currentLevelColor.withAlpha(200),
-                  width: 2.0,
+                    );
+                  },
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: currentLevelColor.withAlpha(60),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: currentLevelColor.withAlpha(50),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: currentLevelColor),
+
+              const SizedBox(height: 20),
+
+              // Current Level Progress Hero Card
+              Container(
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: activeTheme.cardBackground.withAlpha(230),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: activeTheme.primaryAccent.withAlpha(200),
+                    width: 2.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: activeTheme.primaryAccent.withAlpha(70),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: activeTheme.primaryAccent.withAlpha(50),
+                            borderRadius: BorderRadius.circular(10),
+                            border:
+                                Border.all(color: activeTheme.primaryAccent),
+                          ),
+                          child: Text(
+                            'LEVEL $currentLevelId',
+                            style: TextStyle(
+                              color: activeTheme.primaryAccent,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          'LEVEL $currentLevelId',
-                          style: TextStyle(
-                            color: currentLevelColor,
-                            fontSize: 14,
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: activeTheme.tileBorderColor.withAlpha(100),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            currentLevel.category,
+                            style: TextStyle(
+                              color: activeTheme.secondaryAccent,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      currentLevel.name,
+                      style: AppTextStyles.levelCardTitle,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      currentLevel.description,
+                      style: AppTextStyles.levelCardSubtitle,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _startCurrentLevel,
+                        icon: const Icon(Icons.play_arrow_rounded, size: 26),
+                        label: Text(
+                          'START LEVEL $currentLevelId',
+                          style: const TextStyle(
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.8,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.purpleBorder.withAlpha(100),
-                          borderRadius: BorderRadius.circular(10),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: activeTheme.primaryAccent,
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 6,
+                          shadowColor: activeTheme.primaryAccent.withAlpha(160),
                         ),
-                        child: Text(
-                          currentLevel.category,
-                          style: AppTextStyles.levelCardNumber
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    currentLevel.name,
-                    style: AppTextStyles.levelCardTitle
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    currentLevel.description,
-                    style: AppTextStyles.levelCardSubtitle
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _startCurrentLevel,
-                      icon: const Icon(Icons.play_arrow_rounded, size: 26),
-                      label: Text(
-                        'START LEVEL $currentLevelId',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: currentLevelColor,
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 6,
-                        shadowColor: currentLevelColor.withAlpha(160),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            const SizedBox(height: 20),
-
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
