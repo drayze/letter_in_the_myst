@@ -7,12 +7,14 @@ class LetterBubbleWidget extends StatelessWidget {
   final LetterTile tile;
   final double size;
   final Color activeColor;
+  final Color? bubbleTileBorder;
 
   const LetterBubbleWidget({
     super.key,
     required this.tile,
     this.size = 52.0,
     this.activeColor = AppColors.activeCyan,
+    this.bubbleTileBorder,
   });
 
   @override
@@ -22,6 +24,8 @@ class LetterBubbleWidget extends StatelessWidget {
     Color textColor;
     List<BoxShadow> boxShadow;
     double scale = 1.0;
+
+    final defaultBorder = bubbleTileBorder ?? AppColors.bubbleTileBorder;
 
     if (tile.isUsed) {
       final color = tile.solvedColor ?? AppColors.greenSolved;
@@ -37,9 +41,9 @@ class LetterBubbleWidget extends StatelessWidget {
       boxShadow = AppShadows.glow(activeColor, blurRadius: 16, spreadRadius: 3);
     } else {
       bubbleColor = AppColors.usedTileBackground.withAlpha(190);
-      borderColor = AppColors.bubbleTileBorder;
+      borderColor = defaultBorder;
       textColor = Colors.white;
-      boxShadow = AppShadows.glow(AppColors.bubbleTileBorder, blurRadius: 8, spreadRadius: 1);
+      boxShadow = AppShadows.glow(defaultBorder, blurRadius: 8, spreadRadius: 1);
     }
 
     return AnimatedScale(

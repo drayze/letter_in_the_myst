@@ -826,6 +826,8 @@ class _GameScreenState extends State<GameScreen>
                                               tile: tile,
                                               size: _currentTileSize,
                                               activeColor: _activeLineColor,
+                                              bubbleTileBorder:
+                                                  currentTheme.bubbleTileBorder,
                                             ),
                                           );
                                         }),

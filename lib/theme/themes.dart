@@ -24,6 +24,7 @@ class CategoryTheme {
   final Color primaryAccent;
   final Color secondaryAccent;
   final Color tileBorderColor;
+  final Color bubbleTileBorder;
   final Color activeLineColor;
   final Color highlightColor;
   final List<Color> backgroundGradientColors;
@@ -40,6 +41,7 @@ class CategoryTheme {
     required this.primaryAccent,
     required this.secondaryAccent,
     required this.tileBorderColor,
+    required this.bubbleTileBorder,
     required this.activeLineColor,
     required this.highlightColor,
     required this.backgroundGradientColors,
@@ -60,6 +62,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFF52B788),
     secondaryAccent: Color(0xFF74C69D),
     tileBorderColor: Color(0xFF40916C),
+    bubbleTileBorder: Color(0xFF52B788),
     activeLineColor: Color(0xFF74C69D),
     highlightColor: Color(0xFFD8F3DC),
     backgroundGradientColors: [
@@ -81,6 +84,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFFF59E0B),
     secondaryAccent: Color(0xFFFCD34D),
     tileBorderColor: Color(0xFFD97706),
+    bubbleTileBorder: Color(0xFFF59E0B),
     activeLineColor: Color(0xFFF59E0B),
     highlightColor: Color(0xFFFEF3C7),
     backgroundGradientColors: [
@@ -102,6 +106,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFF00F5D4),
     secondaryAccent: Color(0xFFB066FF),
     tileBorderColor: Color(0xFF7B2CBF),
+    bubbleTileBorder: Color(0xFF00F5D4),
     activeLineColor: Color(0xFF00F5D4),
     highlightColor: Color(0xFFE0AAFF),
     backgroundGradientColors: [
@@ -123,6 +128,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFFE07A5F),
     secondaryAccent: Color(0xFFF2CC8F),
     tileBorderColor: Color(0xFF815B48),
+    bubbleTileBorder: Color(0xFFE07A5F),
     activeLineColor: Color(0xFFFFB703),
     highlightColor: Color(0xFFF4F1DE),
     backgroundGradientColors: [
@@ -144,6 +150,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFFD93B8A),
     secondaryAccent: Color(0xFFE8B4FF),
     tileBorderColor: Color(0xFF8A2BE2),
+    bubbleTileBorder: Color(0xFF03BB38),
     activeLineColor: Color(0xFFFF007F),
     highlightColor: Color(0xFFFFD700),
     backgroundGradientColors: [
@@ -165,6 +172,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFF64FFDA),
     secondaryAccent: Color(0xFF38BDF8),
     tileBorderColor: Color(0xFF2563EB),
+    bubbleTileBorder: Color(0xFF64FFDA),
     activeLineColor: Color(0xFF64FFDA),
     highlightColor: Color(0xFFE0F2FE),
     backgroundGradientColors: [
@@ -186,6 +194,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFFF59E0B),
     secondaryAccent: Color(0xFFFBBF24),
     tileBorderColor: Color(0xFFB45309),
+    bubbleTileBorder: Color(0xFFF59E0B),
     activeLineColor: Color(0xFFF59E0B),
     highlightColor: Color(0xFFFEF3C7),
     backgroundGradientColors: [
@@ -239,7 +248,7 @@ abstract class AppColors {
   static const Color purpleAccent = Color(0xFF7B2CBF);
   static const Color purpleLight = Color(0xFFE0AAFF);
   static const Color primaryPink = Color(0xFFBF2C78);
-  static const Color bubbleTileBorder = Color(0xFF8A50C0);
+  static const Color bubbleTileBorder = Color(0xFF03BB38);
 
   // --- Mint / Green / Solved States ---
   static const Color mintAccent = Color(0xFF74C69D);
