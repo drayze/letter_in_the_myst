@@ -62,7 +62,7 @@ abstract class CategoryThemeData {
     primaryAccent: Color(0xFF52B788),
     secondaryAccent: Color(0xFFF59E0B),
     tileBorderColor: Color(0xFF40916C),
-    bubbleTileBorder: Color(0xFF52B788),
+    bubbleTileBorder: Color(0xFFF59E0B),
     activeLineColor: Color(0xFF74C69D),
     highlightColor: Color(0xFFD8F3DC),
     backgroundGradientColors: [
